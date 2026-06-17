@@ -1,5 +1,6 @@
 @import './tokens.css';
 
+/* ── Reset ──────────────────────────────────────────────────────── */
 *,
 *::before,
 *::after {
@@ -8,14 +9,69 @@
   box-sizing: border-box;
 }
 
+/* ── Base ────────────────────────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+}
+
 html,
-body,
-#app {
+body {
   height: 100%;
 }
 
 body {
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
   background-color: var(--color-bg-app);
   color: var(--color-text-primary);
 }
+
+/* ── Tipografía ──────────────────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  line-height: 1.2;
+  color: var(--color-text-primary);
+}
+
+p {
+  color: var(--color-text-secondary);
+}
+
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* ── Secciones del dashboard ─────────────────────────────────────── */
+.section {
+  padding: 4rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section__title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: var(--color-accent);
+}
+
+/* ── Tarjetas ────────────────────────────────────────────────────── */
+.card {
+  background-color: var(--color-bg-card);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  border: 1px solid var(--color-bg-elevated);
+}
+
+/* ── Utilidades ──────────────────────────────────────────────────── */
+.text-secondary { color: var(--color-text-secondary); }
+.text-disabled  { color: var(--color-text-disabled); }
+.text-success   { color: var(--color-success); }
+.text-danger    { color: var(--color-danger); }
+.text-warning   { color: var(--color-warning); }
+.text-star      { color: var(--color-star); }
