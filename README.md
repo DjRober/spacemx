@@ -59,14 +59,75 @@ Cada servicio en `services/` es independiente y desacoplado (RNF5): puede fallar
 
 > Estos documentos se desarrollarán en los siguientes pasos del proyecto.
 
-## Equipo — SpaceMex
+## Instalación y uso local
 
-| Rol | Integrante | Responsabilidad |
-|---|---|---|
-| Gerente de Proyecto | Roberto Pérez | Documentación de servicios SOA · revisión y entrega final |
-| Desarrollador | Daniel Esparza | Requerimientos Funcionales |
-| Desarrollador | Diego Martinez | Requerimientos No Funcionales |
-| Desarrollador | Iker Requenes | Problemática + Alcance |
+### Requisitos previos
+
+- [Node.js](https://nodejs.org/) v18 o superior
+- npm v9 o superior
+- Una API Key de la [NASA Open APIs](https://api.nasa.gov/) (registro gratuito)
+
+### 1. Clonar el repositorio
+
+```bash
+git clone https://github.com/DjRober/spacemx.git
+cd spacemx
+```
+
+### 2. Configurar variables de entorno
+
+Copia el archivo de ejemplo y añade tu API key:
+
+```bash
+cp frontend/.env.example frontend/.env
+```
+
+Edita `frontend/.env`:
+
+```env
+VITE_NASA_API_KEY=tu_api_key_aqui
+```
+
+### 3. Instalar y ejecutar el frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+La aplicación estará disponible en `http://localhost:5173`.
+
+### 4. Ejecutar los servicios (backend)
+
+Cada servicio se levanta de forma independiente. Desde la raíz del proyecto:
+
+```bash
+cd services/<nombre-del-servicio>
+npm install
+npm run dev
+```
+
+Repite el paso para cada servicio que quieras usar:
+
+| Servicio | Puerto por defecto |
+|---|---|
+| `apod-service` | 3001 |
+| `neows-service` | 3002 |
+| `mars-weather-service` | 3003 |
+| `iss-tracker-service` | 3004 |
+| `iss-alerts-service` | 3005 |
+| `reports-service` | 3006 |
+
+> Los servicios aún están en desarrollo. Esta sección se actualizará conforme se implementen.
+
+### Scripts disponibles (frontend)
+
+| Comando | Descripción |
+|---|---|
+| `npm run dev` | Servidor de desarrollo con hot-reload |
+| `npm run build` | Build de producción en `dist/` |
+| `npm run preview` | Vista previa del build de producción |
 
 ## Estado del proyecto
 
