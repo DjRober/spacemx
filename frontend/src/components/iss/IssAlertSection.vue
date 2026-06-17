@@ -43,15 +43,16 @@
   font-size: 1.75rem;
   font-weight: 700;
   margin-bottom: 0.25rem;
+  color: var(--color-text-primary);
 }
 
 .section-subtitle {
-  color: #9ca3af;
+  color: var(--color-text-secondary);
   margin-bottom: 1.5rem;
 }
 
 .alert-form {
-  background-color: #1f2937;
+  background-color: var(--color-bg-card);
   border-radius: 12px;
   padding: 1.5rem;
 }
@@ -61,7 +62,7 @@
   font-size: 0.9rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
-  color: #f9fafb;
+  color: var(--color-text-primary);
 }
 
 .alert-form-row {
@@ -75,34 +76,34 @@
   min-width: 200px;
   padding: 0.65rem 0.85rem;
   border-radius: 8px;
-  border: 1px solid #374151;
-  background-color: #111827;
-  color: #f9fafb;
+  border: 1px solid var(--color-text-disabled);
+  background-color: var(--color-bg-elevated);
+  color: var(--color-text-primary);
   font-size: 1rem;
 }
 
 .alert-input::placeholder {
-  color: #6b7280;
+  color: var(--color-text-disabled);
 }
 
 .alert-submit-btn {
   padding: 0.65rem 1.25rem;
   border-radius: 8px;
   border: none;
-  background-color: #2563eb;
-  color: white;
+  background-color: var(--color-primary);
+  color: var(--color-text-primary);
   font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
 }
 
 .alert-submit-btn:hover {
-  background-color: #1d4ed8;
+  background-color: var(--color-hover);
 }
 
 .alert-helper-text {
   margin-top: 0.75rem;
   font-size: 0.85rem;
-  color: #6b7280;
+  color: var(--color-text-secondary);
 }
 </style>

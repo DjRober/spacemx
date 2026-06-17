@@ -47,18 +47,19 @@
   font-size: 1.75rem;
   font-weight: 700;
   margin-bottom: 0.25rem;
+  color: var(--color-text-primary);
 }
 
 .section-subtitle {
-  color: #9ca3af;
+  color: var(--color-text-secondary);
   margin-bottom: 1.5rem;
 }
 
 .map-placeholder {
   width: 100%;
   height: 320px;
-  background-color: #1f2937;
-  border: 2px dashed #374151;
+  background-color: var(--color-bg-card);
+  border: 2px dashed var(--color-text-disabled);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -68,7 +69,7 @@
 
 .map-placeholder-content {
   text-align: center;
-  color: #6b7280;
+  color: var(--color-text-secondary);
 }
 
 .map-icon {
@@ -86,6 +87,7 @@
 .map-placeholder-coords {
   font-size: 0.85rem;
   margin-top: 0.25rem;
+  color: var(--color-accent);
 }
 
 .iss-info-row {
@@ -97,7 +99,7 @@
 .iss-info-card {
   flex: 1;
   min-width: 150px;
-  background-color: #1f2937;
+  background-color: var(--color-bg-card);
   border-radius: 10px;
   padding: 1rem;
   display: flex;
@@ -107,12 +109,12 @@
 
 .iss-info-label {
   font-size: 0.8rem;
-  color: #9ca3af;
+  color: var(--color-text-secondary);
 }
 
 .iss-info-value {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #f9fafb;
+  color: var(--color-text-primary);
 }
 </style>
