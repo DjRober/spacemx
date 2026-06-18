@@ -75,21 +75,13 @@ const today = computed(() => new Date().toISOString().split('T')[0])
 </script>
 
 <style scoped>
-/* ─── Tokens (alineados con el tema oscuro espacial de Iker) ──────────────── */
 .apod-section {
-  --apod-bg:         #0b0f1a;
-  --apod-card-bg:    #111827;
-  --apod-border:     #1e293b;
-  --apod-accent:     #38bdf8;   /* sky-400 — acento principal */
-  --apod-accent2:    #818cf8;   /* indigo-400 — acento secundario */
-  --apod-text:       #e2e8f0;
-  --apod-muted:      #64748b;
-  --apod-radius:     12px;
-  --apod-font-mono:  'JetBrains Mono', 'Fira Code', monospace;
+  --apod-radius:    12px;
+  --apod-font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
-  background: var(--apod-bg);
+  background: var(--color-bg-app);
   padding: 4rem 1.5rem;
-  color: var(--apod-text);
+  color: var(--color-text-primary);
   font-family: inherit;
 }
 
@@ -106,21 +98,21 @@ const today = computed(() => new Date().toISOString().split('T')[0])
   font-size: 0.7rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--apod-accent);
+  color: var(--color-accent);
   margin-bottom: 0.75rem;
 }
 
 .apod-title {
   font-size: clamp(1.6rem, 4vw, 2.4rem);
   font-weight: 700;
-  color: #f8fafc;
+  color: var(--color-text-primary);
   margin: 0 0 0.5rem;
   line-height: 1.2;
 }
 
 .apod-subtitle {
   font-size: 0.95rem;
-  color: var(--apod-muted);
+  color: var(--color-text-secondary);
   margin: 0;
 }
 
@@ -136,7 +128,7 @@ const today = computed(() => new Date().toISOString().split('T')[0])
   font-family: var(--apod-font-mono);
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--apod-muted);
+  color: var(--color-text-secondary);
   margin-bottom: 0.5rem;
 }
 
@@ -147,10 +139,10 @@ const today = computed(() => new Date().toISOString().split('T')[0])
 
 .apod-date-input {
   flex: 1;
-  background: var(--apod-card-bg);
-  border: 1px solid var(--apod-border);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-bg-elevated);
   border-radius: var(--apod-radius);
-  color: var(--apod-text);
+  color: var(--color-text-primary);
   padding: 0.6rem 1rem;
   font-size: 0.9rem;
   outline: none;
@@ -159,12 +151,12 @@ const today = computed(() => new Date().toISOString().split('T')[0])
 }
 
 .apod-date-input:focus {
-  border-color: var(--apod-accent);
+  border-color: var(--color-accent);
 }
 
 .apod-search-btn {
-  background: var(--apod-accent);
-  color: #0b0f1a;
+  background: var(--color-accent);
+  color: var(--color-text-dark);
   border: none;
   border-radius: var(--apod-radius);
   padding: 0.6rem 1.25rem;
@@ -188,8 +180,8 @@ const today = computed(() => new Date().toISOString().split('T')[0])
 .apod-card {
   max-width: 900px;
   margin: 0 auto;
-  background: var(--apod-card-bg);
-  border: 1px solid var(--apod-border);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-bg-elevated);
   border-radius: var(--apod-radius);
   overflow: hidden;
   display: grid;
@@ -207,7 +199,7 @@ const today = computed(() => new Date().toISOString().split('T')[0])
   position: relative;
   aspect-ratio: 4 / 3;
   overflow: hidden;
-  background: #060912;
+  background: var(--color-bg-app);
 }
 
 .apod-image {
@@ -232,8 +224,8 @@ const today = computed(() => new Date().toISOString().split('T')[0])
   font-family: var(--apod-font-mono);
   font-size: 0.7rem;
   background: rgba(11, 15, 26, 0.85);
-  border: 1px solid var(--apod-border);
-  color: var(--apod-accent);
+  border: 1px solid var(--color-bg-elevated);
+  color: var(--color-accent);
   padding: 0.25rem 0.6rem;
   border-radius: 6px;
   letter-spacing: 0.05em;
@@ -251,14 +243,14 @@ const today = computed(() => new Date().toISOString().split('T')[0])
 .apod-image-title {
   font-size: 1.2rem;
   font-weight: 700;
-  color: #f8fafc;
+  color: var(--color-text-primary);
   margin: 0;
   line-height: 1.3;
 }
 
 .apod-description {
   font-size: 0.9rem;
-  color: var(--apod-muted);
+  color: var(--color-text-secondary);
   line-height: 1.7;
   margin: 0;
   flex: 1;
@@ -266,17 +258,17 @@ const today = computed(() => new Date().toISOString().split('T')[0])
 
 .apod-credit {
   font-size: 0.75rem;
-  color: var(--apod-muted);
+  color: var(--color-text-secondary);
   font-family: var(--apod-font-mono);
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  border-top: 1px solid var(--apod-border);
+  border-top: 1px solid var(--color-bg-elevated);
   padding-top: 0.75rem;
 }
 
 .apod-credit-icon {
-  color: var(--apod-accent2);
+  color: var(--color-hover);
   font-style: normal;
 }
 </style>

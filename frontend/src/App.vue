@@ -1,8 +1,9 @@
 <script setup>
-import NavBar from './components/layout/NavBar.vue'
-import AppFooter from './components/layout/AppFooter.vue'
-import IssMapSection from './components/iss/IssMapSection.vue'
-import IssAlertSection from './components/iss/IssAlertSection.vue'
+import NavBar from "./components/layout/NavBar.vue";
+import AppFooter from "./components/layout/AppFooter.vue";
+import IssMapSection from "./components/iss/IssMapSection.vue";
+import IssAlertSection from "./components/iss/IssAlertSection.vue";
+import ApodSection from "./components/apod/ApodSection.vue";
 </script>
 
 <template>
@@ -10,7 +11,8 @@ import IssAlertSection from './components/iss/IssAlertSection.vue'
     <NavBar />
 
     <main class="app-main">
-      <!-- #apod | #asteroides | #marte | #reportes — próximamente -->
+      <!--#asteroides | #marte | #reportes — próximamente -->
+      <ApodSection />
       <IssMapSection />
       <IssAlertSection />
     </main>
