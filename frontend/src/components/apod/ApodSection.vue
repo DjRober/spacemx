@@ -1,49 +1,42 @@
 <template>
-  <section id="apod" class="apod-section">
-    <!-- Encabezado -->
-    <div class="apod-header">
-      <h2 class="apod-title">Foto Astronómica del Día</h2>
-      <p class="apod-subtitle">
-        Una imagen del universo, cada día seleccionada por astrónomos de la
-        NASA.
-      </p>
-    </div>
+  <section id="apod" class="section apod-section">
+    <h2 class="section__title">Foto Astronómica del Día</h2>
+    <p class="section__subtitle">
+      Lo primero que ve el usuario: la imagen protagonista del universo, su
+      descripción científica y un buscador histórico.
+    </p>
 
-    <!-- Buscador de fecha histórica (RF7) — sin lógica por ahora -->
-    <div class="apod-search">
-      <label for="apod-date" class="apod-search-label">Explorar fecha</label>
-      <div class="apod-search-row">
-        <input
-          id="apod-date"
-          type="date"
-          class="apod-date-input"
-          :max="today"
-          min="1995-06-16"
-          placeholder="YYYY-MM-DD"
-        />
-        <button class="apod-search-btn" disabled>Buscar</button>
-      </div>
-    </div>
-
-    <!-- Tarjeta principal -->
-    <div class="apod-card">
-      <!-- Imagen / placeholder -->
+    <div class="apod-grid">
+      <!-- Imagen protagonista -->
       <div class="apod-image-wrap">
         <img :src="apod.url" :alt="apod.title" class="apod-image" />
-        <div class="apod-image-overlay">
-          <span class="apod-date-badge">{{ apod.date }}</span>
-        </div>
+        <span class="apod-date-badge">{{ apod.date }}</span>
       </div>
 
-      <!-- Contenido textual -->
-      <div class="apod-content">
+      <!-- Información + buscador -->
+      <div class="card apod-info">
         <h3 class="apod-image-title">{{ apod.title }}</h3>
-
         <p class="apod-description">{{ apod.explanation }}</p>
 
-        <div v-if="apod.copyright" class="apod-credit">
-          <span class="apod-credit-icon">©</span>
-          {{ apod.copyright }}
+        <p class="apod-meta">
+          📅 {{ apod.date }}
+          <template v-if="apod.copyright"> · ✍️ {{ apod.copyright }}</template>
+        </p>
+
+        <div class="apod-search">
+          <div class="apod-search-field">
+            <label for="apod-date" class="field-label">
+              Buscador histórico — ver foto de otra fecha
+            </label>
+            <input
+              id="apod-date"
+              type="date"
+              class="input"
+              :max="today"
+              min="1995-06-16"
+            />
+          </div>
+          <button class="btn" disabled>Buscar</button>
         </div>
       </div>
     </div>
@@ -71,129 +64,20 @@ const today = computed(() => new Date().toISOString().split("T")[0]);
 </script>
 
 <style scoped>
-.apod-section {
-  --apod-radius: 12px;
-  --apod-font-mono: "JetBrains Mono", "Fira Code", monospace;
-
-  background: var(--color-bg-app);
-  padding: 4rem 1.5rem;
-  color: var(--color-text-primary);
-  font-family: inherit;
-}
-
-/* ─── Encabezado ──────────────────────────────────────────────────────────── */
-.apod-header {
-  max-width: 720px;
-  margin: 0 auto 2.5rem;
-  text-align: center;
-}
-
-.apod-eyebrow {
-  display: inline-block;
-  font-size: 0.75rem;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--color-accent);
-  margin-bottom: 0.75rem;
-}
-
-.apod-title {
-  font-size: clamp(1.6rem, 3vw, 2rem);
-  font-weight: 700;
-  color: var(--color-text-primary);
-  margin: 0 0 0.5rem;
-  line-height: 1.2;
-}
-
-.apod-subtitle {
-  font-size: 0.95rem;
-  color: var(--color-text-secondary);
-  margin: 0;
-}
-
-/* ─── Buscador de fecha ───────────────────────────────────────────────────── */
-.apod-search {
-  max-width: 480px;
-  margin: 0 auto 2.5rem;
-}
-
-.apod-search-label {
-  display: block;
-  font-size: 0.75rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--color-text-secondary);
-  margin-bottom: 0.5rem;
-}
-
-.apod-search-row {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.apod-date-input {
-  flex: 1;
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-bg-elevated);
-  border-radius: var(--apod-radius);
-  color: var(--color-text-primary);
-  padding: 0.6rem 1rem;
-  font-size: 0.9rem;
-  outline: none;
-  transition: border-color 0.2s;
-  color-scheme: dark;
-}
-
-.apod-date-input:focus {
-  border-color: var(--color-accent);
-}
-
-.apod-search-btn {
-  background: var(--color-accent);
-  color: var(--color-text-dark);
-  border: none;
-  border-radius: var(--apod-radius);
-  padding: 0.6rem 1.25rem;
-  font-weight: 600;
-  font-size: 0.875rem;
-  cursor: not-allowed;
-  opacity: 0.5;
-  transition: opacity 0.2s;
-}
-
-.apod-search-btn:not(:disabled) {
-  cursor: pointer;
-  opacity: 1;
-}
-
-.apod-search-btn:not(:disabled):hover {
-  opacity: 0.85;
-}
-
-/* ─── Tarjeta principal ───────────────────────────────────────────────────── */
-.apod-card {
-  max-width: 900px;
-  margin: 0 auto;
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-bg-elevated);
-  border-radius: var(--apod-radius);
-  overflow: hidden;
+.apod-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 24px;
 }
 
-@media (min-width: 768px) {
-  .apod-card {
-    grid-template-columns: 1.1fr 1fr;
-  }
-}
-
-/* ─── Imagen ──────────────────────────────────────────────────────────────── */
+/* ─── Imagen ──────────────────────────────────────────────────── */
 .apod-image-wrap {
   position: relative;
-  aspect-ratio: 4 / 3;
+  min-height: 380px;
+  border-radius: 12px;
   overflow: hidden;
-  background: var(--color-bg-app);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
 }
 
 .apod-image {
@@ -204,21 +88,18 @@ const today = computed(() => new Date().toISOString().split("T")[0]);
   transition: transform 0.4s ease;
 }
 
-.apod-card:hover .apod-image {
+.apod-image-wrap:hover .apod-image {
   transform: scale(1.03);
 }
 
-.apod-image-overlay {
-  position: absolute;
-  bottom: 0.75rem;
-  left: 0.75rem;
-}
-
 .apod-date-badge {
-  font-family: var(--apod-font-mono);
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
   font-size: 0.7rem;
-  background: rgba(11, 15, 26, 0.85);
-  border: 1px solid var(--color-bg-elevated);
+  background: rgba(11, 14, 29, 0.85);
+  border: 1px solid var(--color-border);
   color: var(--color-accent);
   padding: 0.25rem 0.6rem;
   border-radius: 6px;
@@ -226,18 +107,16 @@ const today = computed(() => new Date().toISOString().split("T")[0]);
   backdrop-filter: blur(4px);
 }
 
-/* ─── Contenido ───────────────────────────────────────────────────────────── */
-.apod-content {
-  padding: 2rem 1.75rem;
+/* ─── Info ────────────────────────────────────────────────────── */
+.apod-info {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .apod-image-title {
-  font-size: 1.2rem;
+  font-size: 1.35rem;
   font-weight: 700;
-  color: var(--color-text-primary);
   margin: 0;
   line-height: 1.3;
 }
@@ -247,22 +126,35 @@ const today = computed(() => new Date().toISOString().split("T")[0]);
   color: var(--color-text-secondary);
   line-height: 1.7;
   margin: 0;
+  max-height: 11rem;
+  overflow-y: auto;
+}
+
+.apod-meta {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+.apod-search {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  margin-top: auto;
+  padding-top: 0.5rem;
+}
+
+.apod-search-field {
   flex: 1;
 }
 
-.apod-credit {
-  font-size: 0.75rem;
-  color: var(--color-text-secondary);
-  font-family: var(--apod-font-mono);
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  border-top: 1px solid var(--color-bg-elevated);
-  padding-top: 0.75rem;
+.apod-search .btn {
+  white-space: nowrap;
 }
 
-.apod-credit-icon {
-  color: var(--color-hover);
-  font-style: normal;
+/* ─── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 820px) {
+  .apod-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
