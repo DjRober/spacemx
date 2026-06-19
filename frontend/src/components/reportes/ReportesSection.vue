@@ -276,4 +276,32 @@ const reportes = [
     grid-template-columns: 1fr;
   }
 }
+
+/* Móvil estrecho (≤ 560px, optimizado para 360px):
+   la tarjeta de reporte pasa a dos filas — thumb + info arriba,
+   y las acciones a todo el ancho abajo con tap targets cómodos. */
+@media (max-width: 560px) {
+  .rep-card {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .rep-title {
+    white-space: normal;
+  }
+
+  .rep-actions {
+    flex-basis: 100%;
+    gap: 0.6rem;
+    margin-top: 0.6rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .icon-btn {
+    flex: 1;
+    padding: 0.55rem;
+    font-size: 1rem;
+  }
+}
 </style>
