@@ -1,25 +1,29 @@
 :root {
   /* ── Fondos: capas de oscuridad del espacio ─────────────────── */
-  --color-bg-app:       #0B0F2E; /* Espacio profundo  — fondo principal */
-  --color-bg-nav:       #0F1729; /* Cosmos oscuro     — sidebar / navbar */
-  --color-bg-card:      #1A2044; /* Nebulosa           — tarjetas y modales */
-  --color-bg-elevated:  #1C3454; /* Medianoche         — inputs, superficies elevadas */
+  --color-bg-app:       #0B0E1D; /* Espacio profundo  — fondo principal */
+  --color-bg-nav:       #0B0E1D; /* Cosmos oscuro     — navbar (con blur translúcido) */
+  --color-bg-card:      #141A33; /* Nebulosa          — paneles y tarjetas */
+  --color-bg-elevated:  #1B2347; /* Medianoche        — inputs, superficies elevadas */
+
+  /* ── Bordes ─────────────────────────────────────────────────── */
+  --color-border:       #2C3766; /* Línea de horizonte — bordes de tarjetas e inputs */
 
   /* ── Primarios: colores de acción e interfaz ────────────────── */
-  --color-primary:      #1565C0; /* Azul estelar       — botones, links primarios */
-  --color-soa:          #4A148C; /* Púrpura nebulosa   — badges, etiquetas SOA */
-  --color-accent:       #00B8D9; /* Luz de estrella    — iconos, bordes activos, ISS */
-  --color-hover:        #7C3AED; /* Violeta cósmico    — acento secundario, hover */
+  --color-primary:      #5B8CFF; /* Azul estelar      — botones, links primarios */
+  --color-accent:       #5B8CFF; /* Azul estelar      — iconos, bordes activos, ISS */
+  --color-accent2:      #FF7A59; /* Naranja cohete    — acento secundario, badges */
+  --color-hover:        #4A7BEF; /* Azul intenso      — hover de botones */
+  --color-soa:          #4A148C; /* Púrpura nebulosa  — badges, etiquetas SOA */
 
   /* ── Semánticos: estados, alertas y datos ───────────────────── */
-  --color-star:         #FFD700; /* Oro solar          — estrellas, favoritos, APOD */
-  --color-danger:       #EF4444; /* Rojo Marte          — alertas, asteroides peligrosos */
-  --color-success:      #10B981; /* Verde ISS           — éxito, conexión activa, ISS online */
-  --color-warning:      #F59E0B; /* Naranja solar       — advertencias, tormenta en Marte */
+  --color-star:         #FFD700; /* Oro solar         — estrellas, favoritos, APOD */
+  --color-danger:       #FF5D73; /* Rojo Marte        — alertas, asteroides peligrosos */
+  --color-success:      #3DDC97; /* Verde ISS         — éxito, conexión activa, caché */
+  --color-warning:      #FFC857; /* Ámbar solar       — advertencias, sol marciano */
 
   /* ── Texto: tipografía sobre fondos oscuros ─────────────────── */
-  --color-text-primary:   #F0F4FF; /* Blanco estelar   — texto principal */
-  --color-text-secondary: #94A3B8; /* Gris luna        — texto secundario, metadatos */
-  --color-text-disabled:  #475569; /* Gris asteroide   — placeholders, deshabilitado */
-  --color-text-dark:      #1E293B; /* Azul medianoche  — texto oscuro sobre fondos claros */
+  --color-text-primary:   #E8ECFF; /* Blanco estelar  — texto principal */
+  --color-text-secondary: #8D97C4; /* Gris luna       — texto secundario, metadatos */
+  --color-text-disabled:  #5A6499; /* Gris asteroide  — placeholders, deshabilitado */
+  --color-text-dark:      #0B0E1D; /* Espacio profundo— texto oscuro sobre fondos claros */
 }

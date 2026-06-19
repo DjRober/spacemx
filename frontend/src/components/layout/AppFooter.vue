@@ -1,7 +1,8 @@
 <template>
   <footer class="footer">
     <p class="footer__text">
-      SpaceMex &copy; {{ year }} — Datos provistos por
+      SpaceMex &copy; {{ year }} · NASA Space Dashboard — Arquitectura SOA. Datos
+      provistos por
       <a
         href="https://api.nasa.gov/"
         target="_blank"

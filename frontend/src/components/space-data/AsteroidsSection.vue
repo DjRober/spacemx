@@ -1,22 +1,43 @@
 <template>
-  <section id="asteroides" class="asteroids-section">
-    <h2 class="section-title">Asteroides Cercanos</h2>
-    <p class="section-subtitle">Objetos próximos a la Tierra detectados por el sistema NeoWs de la NASA.</p>
+  <section id="asteroides" class="section asteroids-section">
+    <h2 class="section__title">Asteroides cercanos (NeoWs)</h2>
+    <p class="section__subtitle">
+      Objetos próximos a la Tierra detectados por el sistema NeoWs de la NASA.
+      Barra de filtros arriba, resultados abajo.
+    </p>
 
+    <!-- Barra de filtros -->
     <div class="filters">
-      <input
-        v-model="filters.search"
-        type="text"
-        class="search-input"
-        placeholder="Buscar por nombre..."
-      />
-      <label class="checkbox-label">
-        <input v-model="filters.hazardousOnly" type="checkbox" class="checkbox" />
-        Solo potencialmente peligrosos
-      </label>
+      <div>
+        <label class="field-label" for="ast-desde">Desde</label>
+        <input id="ast-desde" v-model="filters.desde" type="date" class="input" />
+      </div>
+      <div>
+        <label class="field-label" for="ast-hasta">Hasta</label>
+        <input id="ast-hasta" v-model="filters.hasta" type="date" class="input" />
+      </div>
+      <div>
+        <label class="field-label" for="ast-size">Tamaño estimado</label>
+        <select id="ast-size" v-model="filters.size" class="select">
+          <option value="all">Todos</option>
+          <option value="small">&lt; 100 m</option>
+          <option value="mid">100–500 m</option>
+          <option value="large">&gt; 500 m</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-label" for="ast-hazard">Peligrosidad</label>
+        <select id="ast-hazard" v-model="filters.hazard" class="select">
+          <option value="all">Todas</option>
+          <option value="yes">Peligroso</option>
+          <option value="no">No peligroso</option>
+        </select>
+      </div>
+      <button class="btn btn--ghost" @click="resetFilters">Limpiar</button>
     </div>
 
-    <div class="table-wrapper">
+    <!-- Tabla de resultados -->
+    <div class="card table-card">
       <table>
         <thead>
           <tr>
@@ -31,16 +52,18 @@
           <tr v-for="asteroid in filteredAsteroids" :key="asteroid.id">
             <td class="name-cell">{{ asteroid.name }}</td>
             <td>{{ asteroid.diameter_max_km }} km</td>
-            <td>{{ asteroid.velocity_km_h }} km/h</td>
+            <td>{{ Number(asteroid.velocity_km_h).toLocaleString("es-MX") }} km/h</td>
             <td>{{ asteroid.close_approach_date }}</td>
             <td>
-              <span :class="asteroid.is_potentially_hazardous ? 'badge danger' : 'badge safe'">
-                {{ asteroid.is_potentially_hazardous ? '⚠️ Sí' : '✅ No' }}
+              <span :class="asteroid.is_potentially_hazardous ? 'tag bad' : 'tag ok'">
+                {{ asteroid.is_potentially_hazardous ? "⚠ Sí" : "✓ No" }}
               </span>
             </td>
           </tr>
           <tr v-if="filteredAsteroids.length === 0">
-            <td colspan="5" class="empty-row">No se encontraron asteroides con esos filtros.</td>
+            <td colspan="5" class="empty-row">
+              No se encontraron asteroides con esos filtros.
+            </td>
           </tr>
         </tbody>
       </table>
@@ -49,122 +72,93 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
-import { neowsService } from '../../services/neowsService'
+import { ref, reactive, computed, onMounted } from "vue";
+import { neowsService } from "../../services/neowsService";
 
-const asteroids = ref([])
+const asteroids = ref([]);
 const filters = reactive({
-  search: '',
-  hazardousOnly: false
-})
+  desde: "",
+  hasta: "",
+  size: "all",
+  hazard: "all",
+});
 
 onMounted(async () => {
-  asteroids.value = await neowsService.getUpcomingAsteroids()
-})
+  asteroids.value = await neowsService.getUpcomingAsteroids();
+});
 
-const filteredAsteroids = computed(() => {
-  return asteroids.value.filter(ast => {
-    const matchesSearch = ast.name.toLowerCase().includes(filters.search.toLowerCase())
-    const matchesHazard = !filters.hazardousOnly || ast.is_potentially_hazardous
-    return matchesSearch && matchesHazard
+function resetFilters() {
+  filters.desde = "";
+  filters.hasta = "";
+  filters.size = "all";
+  filters.hazard = "all";
+}
+
+// Umbrales de tamaño en km (100 m = 0.1 km, 500 m = 0.5 km)
+function matchesSize(diameterKm) {
+  if (filters.size === "small") return diameterKm < 0.1;
+  if (filters.size === "mid") return diameterKm >= 0.1 && diameterKm <= 0.5;
+  if (filters.size === "large") return diameterKm > 0.5;
+  return true;
+}
+
+const filteredAsteroids = computed(() =>
+  asteroids.value.filter((ast) => {
+    const matchesDesde = !filters.desde || ast.close_approach_date >= filters.desde;
+    const matchesHasta = !filters.hasta || ast.close_approach_date <= filters.hasta;
+    const matchesHazard =
+      filters.hazard === "all" ||
+      (filters.hazard === "yes" && ast.is_potentially_hazardous) ||
+      (filters.hazard === "no" && !ast.is_potentially_hazardous);
+    return matchesDesde && matchesHasta && matchesSize(ast.diameter_max_km) && matchesHazard;
   })
-})
+);
 </script>
 
 <style scoped>
-.asteroids-section {
-  padding: 2rem 1.5rem;
-  max-width: 960px;
-  margin: 0 auto;
-}
-
-.section-title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  margin-bottom: 0.25rem;
-  color: var(--color-text-primary);
-}
-
-.section-subtitle {
-  color: var(--color-text-secondary);
-  margin-bottom: 1.5rem;
-}
-
 .filters {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  flex-wrap: wrap;
-  margin-bottom: 1.25rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr auto;
+  gap: 14px;
+  align-items: end;
+  margin-bottom: 22px;
 }
 
-.search-input {
-  flex: 1;
-  min-width: 200px;
-  padding: 0.65rem 0.85rem;
-  border-radius: 8px;
-  border: 1px solid var(--color-text-disabled);
-  background-color: var(--color-bg-elevated);
-  color: var(--color-text-primary);
-  font-size: 1rem;
+.filters .btn {
+  height: fit-content;
 }
 
-.search-input::placeholder {
-  color: var(--color-text-disabled);
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: var(--color-accent);
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.checkbox {
-  accent-color: var(--color-accent);
-  width: 1rem;
-  height: 1rem;
-  cursor: pointer;
-}
-
-.table-wrapper {
-  background-color: var(--color-bg-card);
-  border-radius: 12px;
+/* ── Tabla ─────────────────────────────────────────────────────── */
+.table-card {
+  padding: 0;
   overflow: hidden;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-}
-
-thead {
-  background-color: var(--color-bg-elevated);
+  font-size: 0.8rem;
 }
 
 th {
-  padding: 0.85rem 1rem;
-  text-align: left;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   color: var(--color-text-secondary);
+  text-align: left;
+  padding: 10px;
+  border-bottom: 1px solid var(--color-border);
+  font-weight: 600;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 td {
-  padding: 0.85rem 1rem;
-  font-size: 0.9rem;
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--color-bg-elevated);
   color: var(--color-text-primary);
-  border-top: 1px solid var(--color-bg-elevated);
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
 }
 
 tbody tr:hover {
@@ -176,27 +170,37 @@ tbody tr:hover {
   color: var(--color-accent);
 }
 
-.badge {
-  display: inline-block;
-  padding: 0.2rem 0.6rem;
-  border-radius: 6px;
-  font-size: 0.8rem;
+.tag {
+  padding: 3px 10px;
+  border-radius: 10px;
+  font-size: 0.7rem;
   font-weight: 600;
 }
 
-.badge.danger {
-  background-color: rgba(239, 68, 68, 0.15);
-  color: var(--color-danger);
+.tag.ok {
+  background: rgba(61, 220, 151, 0.15);
+  color: var(--color-success);
 }
 
-.badge.safe {
-  background-color: rgba(16, 185, 129, 0.15);
-  color: var(--color-success);
+.tag.bad {
+  background: rgba(255, 93, 115, 0.15);
+  color: var(--color-danger);
 }
 
 .empty-row {
   text-align: center;
   color: var(--color-text-secondary);
   padding: 2rem;
+}
+
+/* ── Responsive ───────────────────────────────────────────────── */
+@media (max-width: 820px) {
+  .filters {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .table-card {
+    overflow-x: auto;
+  }
 }
 </style>

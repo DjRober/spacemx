@@ -1,11 +1,10 @@
 <script setup>
 import NavBar from "./components/layout/NavBar.vue";
 import AppFooter from "./components/layout/AppFooter.vue";
-import IssMapSection from "./components/iss/IssMapSection.vue";
-import IssAlertSection from "./components/iss/IssAlertSection.vue";
 import ApodSection from "./components/apod/ApodSection.vue";
+import IssSection from "./components/iss/IssSection.vue";
 import MarsWeatherSection from "./components/space-data/MarsWeatherSection.vue";
-import AsteroidWeatherSection from "./components/space-data/AsteroidsSection.vue";
+import AsteroidsSection from "./components/space-data/AsteroidsSection.vue";
 import ReportesSection from "./components/reportes/ReportesSection.vue";
 </script>
 
@@ -14,12 +13,10 @@ import ReportesSection from "./components/reportes/ReportesSection.vue";
     <NavBar />
 
     <main class="app-main">
-      <!--#asteroides | #marte | #reportes — próximamente -->
       <ApodSection />
-      <IssMapSection />
-      <IssAlertSection />
+      <IssSection />
       <MarsWeatherSection />
-      <AsteroidWeatherSection />
+      <AsteroidsSection />
       <ReportesSection />
     </main>
 
@@ -36,6 +33,5 @@ import ReportesSection from "./components/reportes/ReportesSection.vue";
 
 .app-main {
   flex: 1;
-  padding: 2rem;
 }
 </style>

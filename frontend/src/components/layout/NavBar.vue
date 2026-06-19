@@ -1,15 +1,17 @@
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted, onBeforeUnmount } from "vue";
 
 const links = [
-  { href: "#apod", label: "APOD" },
+  { href: "#apod", label: "Foto del Día" },
   { href: "#iss", label: "ISS" },
   { href: "#marte", label: "Marte" },
   { href: "#asteroides", label: "Asteroides" },
-  { href: "#reportes", label: "Reportes" },
+  { href: "#reportes", label: "Mis Reportes" },
 ];
 
 const menuOpen = ref(false);
+const activeId = ref("apod");
+const lang = ref("ES");
 
 function toggleMenu() {
   menuOpen.value = !menuOpen.value;
@@ -18,20 +20,48 @@ function toggleMenu() {
 function closeMenu() {
   menuOpen.value = false;
 }
+
+function toggleLang() {
+  lang.value = lang.value === "ES" ? "EN" : "ES";
+}
+
+// Resalta el link de la sección visible mientras se hace scroll.
+let observer = null;
+
+onMounted(() => {
+  observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) activeId.value = entry.target.id;
+      });
+    },
+    { rootMargin: "-40% 0px -55% 0px" }
+  );
+  document.querySelectorAll("section[id]").forEach((s) => observer.observe(s));
+});
+
+onBeforeUnmount(() => observer?.disconnect());
 </script>
 
 <template>
   <nav class="navbar">
-    <a href="#" class="navbar__brand" @click="closeMenu">SpaceMex</a>
+    <a href="#" class="navbar__brand" @click="closeMenu">
+      <span class="navbar__dot">🚀</span> SpaceMex
+    </a>
 
     <!-- Links — escritorio -->
     <ul class="navbar__links">
       <li v-for="link in links" :key="link.href">
-        <a :href="link.href" class="navbar__link">{{ link.label }}</a>
+        <a
+          :href="link.href"
+          class="navbar__link"
+          :class="{ 'is-active': '#' + activeId === link.href }"
+        >{{ link.label }}</a>
       </li>
     </ul>
 
-    <!-- Botón iniciar sesión -->
+    <!-- Acciones derecha -->
+    <button class="navbar__lang" @click="toggleLang">{{ lang }} / {{ lang === "ES" ? "EN" : "ES" }}</button>
     <button class="navbar__login navbar__login--bar">Iniciar sesión</button>
 
     <!-- Botón hamburguesa — móvil -->
@@ -54,7 +84,11 @@ function closeMenu() {
       @click="closeMenu"
     >
       <li v-for="link in links" :key="link.href">
-        <a :href="link.href" class="navbar__link">{{ link.label }}</a>
+        <a
+          :href="link.href"
+          class="navbar__link"
+          :class="{ 'is-active': '#' + activeId === link.href }"
+        >{{ link.label }}</a>
       </li>
       <li>
         <button class="navbar__login navbar__login--drawer">Iniciar sesión</button>
@@ -70,47 +104,89 @@ function closeMenu() {
   z-index: 100;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 2rem;
+  gap: 8px;
+  padding: 0 32px;
   height: 60px;
-  background-color: var(--color-bg-nav);
-  border-bottom: 1px solid var(--color-accent);
+  background-color: rgba(11, 14, 29, 0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .navbar__brand {
-  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.125rem;
   font-weight: 700;
-  color: var(--color-accent);
+  color: var(--color-text-primary);
   text-decoration: none;
-  letter-spacing: 0.05em;
+  margin-right: auto;
+}
+
+.navbar__brand:hover {
+  text-decoration: none;
+}
+
+.navbar__dot {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, var(--color-accent), #1a2a6c);
+  display: grid;
+  place-items: center;
+  font-size: 0.95rem;
 }
 
 /* ── Links escritorio ──────────────────────────────────────────── */
 .navbar__links {
   display: flex;
-  gap: 2rem;
+  gap: 4px;
   list-style: none;
 }
 
 .navbar__link {
+  display: block;
   color: var(--color-text-secondary);
   text-decoration: none;
-  font-size: 0.9rem;
-  transition: color 0.2s;
+  font-size: 0.875rem;
+  padding: 8px 14px;
+  border-radius: 8px;
+  transition: color 0.2s, background-color 0.2s;
 }
 
-.navbar__link:hover {
+.navbar__link:hover,
+.navbar__link.is-active {
   color: var(--color-text-primary);
+  background-color: var(--color-bg-elevated);
+  text-decoration: none;
+}
+
+/* ── Idioma ────────────────────────────────────────────────────── */
+.navbar__lang {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  background: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.navbar__lang:hover {
+  color: var(--color-text-primary);
+  border-color: var(--color-accent);
 }
 
 /* ── Login ─────────────────────────────────────────────────────── */
 .navbar__login {
   background-color: var(--color-primary);
-  color: var(--color-text-primary);
+  color: #fff;
   border: none;
   border-radius: 8px;
-  padding: 0.45rem 1rem;
-  font-size: 0.85rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -134,9 +210,10 @@ function closeMenu() {
   width: 36px;
   height: 36px;
   background: none;
-  border: none;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
   cursor: pointer;
-  padding: 4px;
+  padding: 6px;
 }
 
 .bar {
@@ -145,13 +222,10 @@ function closeMenu() {
   height: 2px;
   background-color: var(--color-text-primary);
   border-radius: 2px;
-  transition:
-    transform 0.3s,
-    opacity 0.3s;
+  transition: transform 0.3s, opacity 0.3s;
   transform-origin: center;
 }
 
-/* Animación X al abrir */
 .navbar__hamburger.is-open .bar:nth-child(1) {
   transform: translateY(7px) rotate(45deg);
 }
@@ -172,16 +246,13 @@ function closeMenu() {
   flex-direction: column;
   list-style: none;
   background-color: var(--color-bg-nav);
-  border-bottom: 1px solid var(--color-accent);
+  border-bottom: 1px solid var(--color-border);
   padding: 1rem 2rem;
-  gap: 1.25rem;
+  gap: 0.5rem;
 
-  /* Animación de entrada */
   opacity: 0;
   transform: translateY(-8px);
-  transition:
-    opacity 0.25s,
-    transform 0.25s;
+  transition: opacity 0.25s, transform 0.25s;
   pointer-events: none;
 }
 
@@ -192,11 +263,12 @@ function closeMenu() {
 }
 
 /* ── Breakpoint móvil ──────────────────────────────────────────── */
-@media (max-width: 640px) {
-  .navbar__links {
-    display: none;
+@media (max-width: 820px) {
+  .navbar {
+    padding: 0 16px;
   }
 
+  .navbar__links,
   .navbar__login--bar {
     display: none;
   }
