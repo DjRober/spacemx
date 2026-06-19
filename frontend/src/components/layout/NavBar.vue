@@ -31,6 +31,9 @@ function closeMenu() {
       </li>
     </ul>
 
+    <!-- Botón iniciar sesión -->
+    <button class="navbar__login navbar__login--bar">Iniciar sesión</button>
+
     <!-- Botón hamburguesa — móvil -->
     <button
       class="navbar__hamburger"
@@ -52,6 +55,9 @@ function closeMenu() {
     >
       <li v-for="link in links" :key="link.href">
         <a :href="link.href" class="navbar__link">{{ link.label }}</a>
+      </li>
+      <li>
+        <button class="navbar__login navbar__login--drawer">Iniciar sesión</button>
       </li>
     </ul>
   </nav>
@@ -95,6 +101,28 @@ function closeMenu() {
 
 .navbar__link:hover {
   color: var(--color-text-primary);
+}
+
+/* ── Login ─────────────────────────────────────────────────────── */
+.navbar__login {
+  background-color: var(--color-primary);
+  color: var(--color-text-primary);
+  border: none;
+  border-radius: 8px;
+  padding: 0.45rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s;
+}
+
+.navbar__login:hover {
+  background-color: var(--color-hover);
+}
+
+.navbar__login--drawer {
+  width: 100%;
 }
 
 /* ── Hamburguesa ───────────────────────────────────────────────── */
@@ -166,6 +194,10 @@ function closeMenu() {
 /* ── Breakpoint móvil ──────────────────────────────────────────── */
 @media (max-width: 640px) {
   .navbar__links {
+    display: none;
+  }
+
+  .navbar__login--bar {
     display: none;
   }
 

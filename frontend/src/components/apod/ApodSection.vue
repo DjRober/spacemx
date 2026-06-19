@@ -2,9 +2,11 @@
   <section id="apod" class="apod-section">
     <!-- Encabezado -->
     <div class="apod-header">
-      <span class="apod-eyebrow">NASA · APOD</span>
       <h2 class="apod-title">Foto Astronómica del Día</h2>
-      <p class="apod-subtitle">Una imagen del universo, cada día seleccionada por astrónomos de la NASA.</p>
+      <p class="apod-subtitle">
+        Una imagen del universo, cada día seleccionada por astrónomos de la
+        NASA.
+      </p>
     </div>
 
     <!-- Buscador de fecha histórica (RF7) — sin lógica por ahora -->
@@ -19,9 +21,7 @@
           min="1995-06-16"
           placeholder="YYYY-MM-DD"
         />
-        <button class="apod-search-btn" disabled>
-          Buscar
-        </button>
+        <button class="apod-search-btn" disabled>Buscar</button>
       </div>
     </div>
 
@@ -29,11 +29,7 @@
     <div class="apod-card">
       <!-- Imagen / placeholder -->
       <div class="apod-image-wrap">
-        <img
-          :src="apod.url"
-          :alt="apod.title"
-          class="apod-image"
-        />
+        <img :src="apod.url" :alt="apod.title" class="apod-image" />
         <div class="apod-image-overlay">
           <span class="apod-date-badge">{{ apod.date }}</span>
         </div>
@@ -55,29 +51,29 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed } from "vue";
 
 // Datos mock estáticos — se reemplazarán con llamada a apodService.getApod()
 const apod = ref({
-  date: '2026-06-18',
-  title: 'The Pillars of Creation',
+  date: "2026-06-18",
+  title: "The Pillars of Creation",
   explanation:
-    'En esta icónica imagen capturada por el Telescopio Espacial James Webb, los Pilares de la Creación ' +
-    'se revelan con un detalle sin precedentes. Estas columnas de gas y polvo interestelar, ubicadas en ' +
-    'la Nebulosa del Águila a 6 500 años luz de la Tierra, son viveros de estrellas en formación.',
-  url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Pillars_of_creation_2014_HST_WFC3-UVIS_full-res_denoised.jpg/800px-Pillars_of_creation_2014_HST_WFC3-UVIS_full-res_denoised.jpg',
-  media_type: 'image',
-  copyright: 'NASA, ESA, CSA, STScI',
-})
+    "En esta icónica imagen capturada por el Telescopio Espacial James Webb, los Pilares de la Creación " +
+    "se revelan con un detalle sin precedentes. Estas columnas de gas y polvo interestelar, ubicadas en " +
+    "la Nebulosa del Águila a 6 500 años luz de la Tierra, son viveros de estrellas en formación.",
+  url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Pillars_of_creation_2014_HST_WFC3-UVIS_full-res_denoised.jpg/800px-Pillars_of_creation_2014_HST_WFC3-UVIS_full-res_denoised.jpg",
+  media_type: "image",
+  copyright: "NASA, ESA, CSA, STScI",
+});
 
 // Fecha máxima para el date picker = hoy
-const today = computed(() => new Date().toISOString().split('T')[0])
+const today = computed(() => new Date().toISOString().split("T")[0]);
 </script>
 
 <style scoped>
 .apod-section {
-  --apod-radius:    12px;
-  --apod-font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --apod-radius: 12px;
+  --apod-font-mono: "JetBrains Mono", "Fira Code", monospace;
 
   background: var(--color-bg-app);
   padding: 4rem 1.5rem;
@@ -94,16 +90,15 @@ const today = computed(() => new Date().toISOString().split('T')[0])
 
 .apod-eyebrow {
   display: inline-block;
-  font-family: var(--apod-font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.2em;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--color-accent);
   margin-bottom: 0.75rem;
 }
 
 .apod-title {
-  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-size: clamp(1.6rem, 3vw, 2rem);
   font-weight: 700;
   color: var(--color-text-primary);
   margin: 0 0 0.5rem;
@@ -125,8 +120,7 @@ const today = computed(() => new Date().toISOString().split('T')[0])
 .apod-search-label {
   display: block;
   font-size: 0.75rem;
-  font-family: var(--apod-font-mono);
-  letter-spacing: 0.1em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--color-text-secondary);
   margin-bottom: 0.5rem;
