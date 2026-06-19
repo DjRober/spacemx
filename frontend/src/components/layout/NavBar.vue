@@ -1,22 +1,22 @@
 <script setup>
-import { ref } from 'vue'
+import { ref } from "vue";
 
 const links = [
-  { href: '#apod',        label: 'APOD' },
-  { href: '#asteroides',  label: 'Asteroides' },
-  { href: '#marte',       label: 'Marte' },
-  { href: '#iss',         label: 'ISS' },
-  { href: '#reportes',    label: 'Reportes' },
-]
+  { href: "#apod", label: "APOD" },
+  { href: "#iss", label: "ISS" },
+  { href: "#marte", label: "Marte" },
+  { href: "#asteroides", label: "Asteroides" },
+  { href: "#reportes", label: "Reportes" },
+];
 
-const menuOpen = ref(false)
+const menuOpen = ref(false);
 
 function toggleMenu() {
-  menuOpen.value = !menuOpen.value
+  menuOpen.value = !menuOpen.value;
 }
 
 function closeMenu() {
-  menuOpen.value = false
+  menuOpen.value = false;
 }
 </script>
 
@@ -117,7 +117,9 @@ function closeMenu() {
   height: 2px;
   background-color: var(--color-text-primary);
   border-radius: 2px;
-  transition: transform 0.3s, opacity 0.3s;
+  transition:
+    transform 0.3s,
+    opacity 0.3s;
   transform-origin: center;
 }
 
@@ -149,7 +151,9 @@ function closeMenu() {
   /* Animación de entrada */
   opacity: 0;
   transform: translateY(-8px);
-  transition: opacity 0.25s, transform 0.25s;
+  transition:
+    opacity 0.25s,
+    transform 0.25s;
   pointer-events: none;
 }
 

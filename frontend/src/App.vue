@@ -4,6 +4,8 @@ import AppFooter from "./components/layout/AppFooter.vue";
 import IssMapSection from "./components/iss/IssMapSection.vue";
 import IssAlertSection from "./components/iss/IssAlertSection.vue";
 import ApodSection from "./components/apod/ApodSection.vue";
+import MarsWeatherSection from "./components/space-data/MarsWeatherSection.vue";
+import AsteroidWeatherSection from "./components/space-data/AsteroidsSection.vue";
 </script>
 
 <template>
@@ -15,6 +17,8 @@ import ApodSection from "./components/apod/ApodSection.vue";
       <ApodSection />
       <IssMapSection />
       <IssAlertSection />
+      <MarsWeatherSection />
+      <AsteroidWeatherSection />
     </main>
 
     <AppFooter />
