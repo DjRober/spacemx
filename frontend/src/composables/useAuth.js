@@ -25,3 +25,5 @@ export function useAuth() {
 
   return { isLoggedIn, user, login, logout }
 }
+
+export const useAuthStore = useAuth

@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
+import { useAuthStore } from "../composables/useAuth.js";
 
 import HomeView from "../views/HomeView.vue";
 import DashboardView from "../views/DashboardView.vue";
@@ -15,6 +16,13 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+});
+
+router.beforeEach((to) => {
+  const auth = useAuthStore();
+  if (to.path === "/dashboard" && to.hash === "#reportes" && !auth.isLoggedIn.value) {
+    return "/login";
+  }
 });
 
 export default router;
