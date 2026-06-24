@@ -1,5 +1,11 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useAuth } from "../../composables/useAuth.js";
+
+const route = useRoute();
+const router = useRouter();
+const auth = useAuth();
 
 const links = [
   { href: "#apod", label: "Foto del Día" },
@@ -13,6 +19,16 @@ const menuOpen = ref(false);
 const activeId = ref("apod");
 const lang = ref("ES");
 
+// ── Lógica según ruta activa ──────────────────────────────────────
+// /dashboard      -> links de secciones + botón de sesión
+// /  (home)       -> solo logo + "Iniciar sesión" + "Ver dashboard"
+// /login /register -> solo logo, sin links ni botones de sesión
+const isDashboard = computed(() => route.path === "/dashboard");
+const isHome = computed(() => route.path === "/");
+const isAuthPage = computed(
+  () => route.path === "/login" || route.path === "/register"
+);
+
 function toggleMenu() {
   menuOpen.value = !menuOpen.value;
 }
@@ -23,6 +39,22 @@ function closeMenu() {
 
 function toggleLang() {
   lang.value = lang.value === "ES" ? "EN" : "ES";
+}
+
+function irALogin() {
+  closeMenu();
+  router.push("/login");
+}
+
+function irADashboard() {
+  closeMenu();
+  router.push("/dashboard");
+}
+
+function cerrarSesion() {
+  closeMenu();
+  auth.logout();
+  router.push("/");
 }
 
 // Resalta el link de la sección visible mientras se hace scroll.
@@ -45,12 +77,12 @@ onBeforeUnmount(() => observer?.disconnect());
 
 <template>
   <nav class="navbar">
-    <a href="#" class="navbar__brand" @click="closeMenu">
+    <a href="/" class="navbar__brand" @click.prevent="router.push('/'); closeMenu()">
       <span class="navbar__dot">🚀</span> SpaceMex
     </a>
 
-    <!-- Links — escritorio -->
-    <ul class="navbar__links">
+    <!-- Links de secciones — solo en /dashboard, escritorio -->
+    <ul v-if="isDashboard" class="navbar__links">
       <li v-for="link in links" :key="link.href">
         <a
           :href="link.href"
@@ -61,11 +93,33 @@ onBeforeUnmount(() => observer?.disconnect());
     </ul>
 
     <!-- Acciones derecha -->
-    <button class="navbar__lang" @click="toggleLang">{{ lang }} / {{ lang === "ES" ? "EN" : "ES" }}</button>
-    <button class="navbar__login navbar__login--bar">Iniciar sesión</button>
+    <button v-if="!isAuthPage" class="navbar__lang" @click="toggleLang">{{ lang }} / {{ lang === "ES" ? "EN" : "ES" }}</button>
 
-    <!-- Botón hamburguesa — móvil -->
+    <!-- Home: botones "Iniciar sesión" + "Ver dashboard" -->
+    <template v-if="isHome">
+      <button v-if="!auth.isLoggedIn.value" class="navbar__login navbar__login--bar" @click="irALogin">
+        Iniciar sesión
+      </button>
+      <button class="navbar__dashboard-btn" @click="irADashboard">
+        Ver dashboard
+      </button>
+    </template>
+
+    <!-- Dashboard: estado de sesión -->
+    <template v-else-if="isDashboard">
+      <button v-if="!auth.isLoggedIn.value" class="navbar__login navbar__login--bar" @click="irALogin">
+        Iniciar sesión
+      </button>
+      <div v-else class="navbar__user">
+        <span class="navbar__user-name">{{ auth.user.value?.name }}</span>
+        <button class="navbar__login navbar__login--bar" @click="cerrarSesion">
+          Cerrar sesión
+        </button>
+      </div>
+    </template>
+    <!-- Botón hamburguesa — móvil, solo si hay algo que mostrar en el drawer -->
     <button
+      v-if="isDashboard"
       class="navbar__hamburger"
       :class="{ 'is-open': menuOpen }"
       :aria-expanded="menuOpen"
@@ -77,8 +131,9 @@ onBeforeUnmount(() => observer?.disconnect());
       <span class="bar" />
     </button>
 
-    <!-- Menú desplegable — móvil -->
+    <!-- Menú desplegable — móvil, solo en /dashboard -->
     <ul
+      v-if="isDashboard"
       class="navbar__drawer"
       :class="{ 'is-open': menuOpen }"
       @click="closeMenu"
@@ -91,7 +146,12 @@ onBeforeUnmount(() => observer?.disconnect());
         >{{ link.label }}</a>
       </li>
       <li>
-        <button class="navbar__login navbar__login--drawer">Iniciar sesión</button>
+        <button v-if="!auth.isLoggedIn.value" class="navbar__login navbar__login--drawer" @click="irALogin">
+          Iniciar sesión
+        </button>
+        <button v-else class="navbar__login navbar__login--drawer" @click="cerrarSesion">
+          Cerrar sesión ({{ auth.user.value?.name }})
+        </button>
       </li>
     </ul>
   </nav>
@@ -121,6 +181,7 @@ onBeforeUnmount(() => observer?.disconnect());
   color: var(--color-text-primary);
   text-decoration: none;
   margin-right: auto;
+  cursor: pointer;
 }
 
 .navbar__brand:hover {
@@ -199,6 +260,37 @@ onBeforeUnmount(() => observer?.disconnect());
 
 .navbar__login--drawer {
   width: 100%;
+}
+
+/* ── Botón "Ver dashboard" (solo en home) ─────────────────────── */
+.navbar__dashboard-btn {
+  background-color: transparent;
+  border: 1px solid var(--color-accent);
+  color: var(--color-text-primary);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s;
+}
+
+.navbar__dashboard-btn:hover {
+  background-color: var(--color-bg-elevated);
+}
+
+/* ── Usuario logueado ─────────────────────────────────────────── */
+.navbar__user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.navbar__user-name {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
 }
 
 /* ── Hamburguesa ───────────────────────────────────────────────── */
