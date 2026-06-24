@@ -95,9 +95,9 @@ onBeforeUnmount(() => observer?.disconnect());
     <!-- Acciones derecha -->
     <button v-if="!isAuthPage" class="navbar__lang" @click="toggleLang">{{ lang }} / {{ lang === "ES" ? "EN" : "ES" }}</button>
 
-    <!-- Home: botones "Iniciar sesión" + "Ver dashboard" -->
+    <!-- Home: "Iniciar sesión" (siempre visible) + "Ver dashboard" (oculto en móvil, redundante con el hero) -->
     <template v-if="isHome">
-      <button v-if="!auth.isLoggedIn.value" class="navbar__login navbar__login--bar" @click="irALogin">
+      <button v-if="!auth.isLoggedIn.value" class="navbar__login" @click="irALogin">
         Iniciar sesión
       </button>
       <button class="navbar__dashboard-btn" @click="irADashboard">
@@ -361,7 +361,9 @@ onBeforeUnmount(() => observer?.disconnect());
   }
 
   .navbar__links,
-  .navbar__login--bar {
+  .navbar__login--bar,
+  .navbar__user,
+  .navbar__dashboard-btn {
     display: none;
   }
 
