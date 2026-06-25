@@ -26,7 +26,7 @@ const lang = ref("ES");
 const isDashboard = computed(() => route.path === "/dashboard");
 const isHome = computed(() => route.path === "/");
 const isAuthPage = computed(
-  () => route.path === "/login" || route.path === "/register"
+  () => route.path === "/login" || route.path === "/register",
 );
 
 function toggleMenu() {
@@ -45,6 +45,8 @@ function irALogin() {
   closeMenu();
   router.push("/login");
 }
+
+function cholosquincle() {}
 
 function irADashboard() {
   closeMenu();
@@ -67,7 +69,7 @@ onMounted(() => {
         if (entry.isIntersecting) activeId.value = entry.target.id;
       });
     },
-    { rootMargin: "-40% 0px -55% 0px" }
+    { rootMargin: "-40% 0px -55% 0px" },
   );
   document.querySelectorAll("section[id]").forEach((s) => observer.observe(s));
 });
@@ -77,7 +79,14 @@ onBeforeUnmount(() => observer?.disconnect());
 
 <template>
   <nav class="navbar">
-    <a href="/" class="navbar__brand" @click.prevent="router.push('/'); closeMenu()">
+    <a
+      href="/"
+      class="navbar__brand"
+      @click.prevent="
+        router.push('/');
+        closeMenu();
+      "
+    >
       <span class="navbar__dot">🚀</span> SpaceMex
     </a>
 
@@ -88,16 +97,23 @@ onBeforeUnmount(() => observer?.disconnect());
           :href="link.href"
           class="navbar__link"
           :class="{ 'is-active': '#' + activeId === link.href }"
-        >{{ link.label }}</a>
+          >{{ link.label }}</a
+        >
       </li>
     </ul>
 
     <!-- Acciones derecha -->
-    <button v-if="!isAuthPage" class="navbar__lang" @click="toggleLang">{{ lang }} / {{ lang === "ES" ? "EN" : "ES" }}</button>
+    <button v-if="!isAuthPage" class="navbar__lang" @click="toggleLang">
+      {{ lang }} / {{ lang === "ES" ? "EN" : "ES" }}
+    </button>
 
     <!-- Home: "Iniciar sesión" (siempre visible) + "Ver dashboard" (oculto en móvil, redundante con el hero) -->
     <template v-if="isHome">
-      <button v-if="!auth.isLoggedIn.value" class="navbar__login" @click="irALogin">
+      <button
+        v-if="!auth.isLoggedIn.value"
+        class="navbar__login"
+        @click="irALogin"
+      >
         Iniciar sesión
       </button>
       <button class="navbar__dashboard-btn" @click="irADashboard">
@@ -107,7 +123,11 @@ onBeforeUnmount(() => observer?.disconnect());
 
     <!-- Dashboard: estado de sesión -->
     <template v-else-if="isDashboard">
-      <button v-if="!auth.isLoggedIn.value" class="navbar__login navbar__login--bar" @click="irALogin">
+      <button
+        v-if="!auth.isLoggedIn.value"
+        class="navbar__login navbar__login--bar"
+        @click="irALogin"
+      >
         Iniciar sesión
       </button>
       <div v-else class="navbar__user">
@@ -143,13 +163,22 @@ onBeforeUnmount(() => observer?.disconnect());
           :href="link.href"
           class="navbar__link"
           :class="{ 'is-active': '#' + activeId === link.href }"
-        >{{ link.label }}</a>
+          >{{ link.label }}</a
+        >
       </li>
       <li>
-        <button v-if="!auth.isLoggedIn.value" class="navbar__login navbar__login--drawer" @click="irALogin">
+        <button
+          v-if="!auth.isLoggedIn.value"
+          class="navbar__login navbar__login--drawer"
+          @click="irALogin"
+        >
           Iniciar sesión
         </button>
-        <button v-else class="navbar__login navbar__login--drawer" @click="cerrarSesion">
+        <button
+          v-else
+          class="navbar__login navbar__login--drawer"
+          @click="cerrarSesion"
+        >
           Cerrar sesión ({{ auth.user.value?.name }})
         </button>
       </li>
@@ -212,7 +241,9 @@ onBeforeUnmount(() => observer?.disconnect());
   font-size: 0.875rem;
   padding: 8px 14px;
   border-radius: 8px;
-  transition: color 0.2s, background-color 0.2s;
+  transition:
+    color 0.2s,
+    background-color 0.2s;
 }
 
 .navbar__link:hover,
@@ -232,7 +263,9 @@ onBeforeUnmount(() => observer?.disconnect());
   background: none;
   cursor: pointer;
   white-space: nowrap;
-  transition: color 0.2s, border-color 0.2s;
+  transition:
+    color 0.2s,
+    border-color 0.2s;
 }
 
 .navbar__lang:hover {
@@ -314,7 +347,9 @@ onBeforeUnmount(() => observer?.disconnect());
   height: 2px;
   background-color: var(--color-text-primary);
   border-radius: 2px;
-  transition: transform 0.3s, opacity 0.3s;
+  transition:
+    transform 0.3s,
+    opacity 0.3s;
   transform-origin: center;
 }
 
@@ -344,7 +379,9 @@ onBeforeUnmount(() => observer?.disconnect());
 
   opacity: 0;
   transform: translateY(-8px);
-  transition: opacity 0.25s, transform 0.25s;
+  transition:
+    opacity 0.25s,
+    transform 0.25s;
   pointer-events: none;
 }
 
