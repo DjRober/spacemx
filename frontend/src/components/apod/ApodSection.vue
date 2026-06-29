@@ -6,7 +6,10 @@
       descripción científica y un buscador histórico.
     </p>
 
-    <div class="apod-grid">
+    <p v-if="error" class="apod-error">{{ error }}</p>
+    <p v-else-if="!apod" class="apod-loading">Cargando foto del dia</p>
+
+    <div v-else class="apod-grid">
       <!-- Imagen protagonista -->
       <div class="apod-image-wrap">
         <img :src="apod.url" :alt="apod.title" class="apod-image" />
@@ -32,11 +35,14 @@
               id="apod-date"
               type="date"
               class="input"
+              v-model="selectedDate"
               :max="today"
               min="1995-06-16"
             />
           </div>
-          <button class="btn" disabled>Buscar</button>
+          <button class="btn" @click="buscar" :disabled="cargando">
+            {{ cargando ? "Buscando" : "Buscar" }}
+          </button>
         </div>
       </div>
     </div>
@@ -44,23 +50,36 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
+import { getApod } from "../../services/Apodservice";
 
-// Datos mock estáticos — se reemplazarán con llamada a apodService.getApod()
-const apod = ref({
-  date: "2026-06-18",
-  title: "The Pillars of Creation",
-  explanation:
-    "En esta icónica imagen capturada por el Telescopio Espacial James Webb, los Pilares de la Creación " +
-    "se revelan con un detalle sin precedentes. Estas columnas de gas y polvo interestelar, ubicadas en " +
-    "la Nebulosa del Águila a 6 500 años luz de la Tierra, son viveros de estrellas en formación.",
-  url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Pillars_of_creation_2014_HST_WFC3-UVIS_full-res_denoised.jpg/800px-Pillars_of_creation_2014_HST_WFC3-UVIS_full-res_denoised.jpg",
-  media_type: "image",
-  copyright: "NASA, ESA, CSA, STScI",
-});
+const apod = ref(null); // datos de la foto (null mientras carga)
+const selectedDate = ref(""); // fecha que escribe el usuario en el input
+const cargando = ref(false); // true mientras espera al servicio
+const error = ref(""); // mensaje si el servicio falla
 
 // Fecha máxima para el date picker = hoy
 const today = computed(() => new Date().toISOString().split("T")[0]);
+
+async function cargarApod(date = null) {
+  cargando.value = true;
+  error.value = "";
+  try {
+    apod.value = await getApod(date);
+  } catch (e) {
+    error.value = "No se pudo cargar la foto";
+  } finally {
+    cargando.value = false;
+  }
+}
+
+// Se ejecuta al hacer click en "Buscar"
+function buscar() {
+  cargarApod(selectedDate.value || null);
+}
+
+// Carga la foto de hoy al abrir la seccion
+onMounted(() => cargarApod());
 </script>
 
 <style scoped>
