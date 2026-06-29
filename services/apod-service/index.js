@@ -12,6 +12,7 @@ const NASA_API_KEY = process.env.NASA_API_KEY || "DEMO_KEY";
 
 app.use(cors()); // permite que el frontend (localhost:5173) consuma este servicio
 
+// https://api.nasa.gov/planetary/apod?api_key
 // GET /apod                 -> foto de hoy
 // GET /apod?date=2024-01-15 -> foto de una fecha pasada (RF7)
 //
@@ -26,7 +27,30 @@ app.use(cors()); // permite que el frontend (localhost:5173) consuma este servic
 //   "copyright":   "NASA, ESA"        // puede venir null
 // }
 app.get("/apod", async (req, res) => {
-  res.json({ ruta: "/apod", estado: "pendiente de implementar" });
+  try {
+    const params = { api_key: NASA_API_KEY };
+
+    // Si pide una fecha especifica
+    if (req.query.date) {
+      params.date = req.query.date;
+    }
+
+    const { data } = await axios.get("https://api.nasa.gov/planetary/apod", {
+      params,
+    });
+
+    // Mapeamos solo los campos necesitados
+    res.json({
+      date: data.date,
+      title: data.title,
+      explanation: data.explanation,
+      url: data.url,
+      media_type: data.media_type,
+      copyright: data.copyright ?? null,
+    });
+  } catch (error) {
+    res.status(502).json({ error: "No se pudo obtener la foto de la NASA." });
+  }
 });
 
 app.listen(PORT, () => {
