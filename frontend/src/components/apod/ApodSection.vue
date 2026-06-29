@@ -145,8 +145,9 @@ onMounted(() => cargarApod());
   color: var(--color-text-secondary);
   line-height: 1.7;
   margin: 0;
-  max-height: 11rem;
-  overflow-y: auto;
+  flex: 1;             /* ocupa el espacio libre de la tarjeta */
+  min-height: 0;       /* clave: permite que el scroll funcione dentro de un flex */
+  overflow-y: auto;    /* scroll SOLO si el texto realmente excede ese espacio */
 }
 
 .apod-meta {
@@ -174,6 +175,11 @@ onMounted(() => cargarApod());
 @media (max-width: 820px) {
   .apod-grid {
     grid-template-columns: 1fr;
+  }
+
+  .apod-description {
+    flex: none;            /* ya no compite por altura */
+    overflow-y: visible;   /* sin scroll: en móvil hay espacio de sobra */
   }
 }
 </style>
