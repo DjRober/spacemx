@@ -1,7 +1,7 @@
 {
-  "name": "iss-tracker-service",
+  "name": "neows-service",
   "version": "1.0.0",
-  "description": "Wrapper de Open-Notify (posición de la ISS en tiempo real) — RF4",
+  "description": "Wrapper de NASA NeoWs (asteroides cercanos) con filtros — RF2, RF9",
   "type": "module",
   "main": "index.js",
   "scripts": {

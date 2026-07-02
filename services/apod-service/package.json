@@ -1,7 +1,7 @@
 {
-  "name": "iss-tracker-service",
+  "name": "apod-service",
   "version": "1.0.0",
-  "description": "Wrapper de Open-Notify (posición de la ISS en tiempo real) — RF4",
+  "description": "Wrapper de NASA APOD con caché — RF1, RF7, RF8",
   "type": "module",
   "main": "index.js",
   "scripts": {
