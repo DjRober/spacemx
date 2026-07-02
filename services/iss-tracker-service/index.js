@@ -1,7 +1,3 @@
-// iss-tracker-service — RF4
-// Esqueleto base. La lógica de la ruta la implementa el encargado.
-// No necesita API key.
-
 import express from "express";
 import cors from "cors";
 import axios from "axios";
@@ -12,18 +8,27 @@ const PORT = process.env.PORT || 3004;
 
 app.use(cors());
 
+const ISS_URL = "https://api.wheretheiss.at/v1/satellites/25544";
+
 // GET /iss/posicion
-//
-// TODO: llamar a http://api.open-notify.org/iss-now.json (no necesita api_key)
-//       y devolver un objeto con ESTA forma:
-// {
-//   "latitude":  19.4326,
-//   "longitude": -99.1332,
-//   "timestamp": 1718750000000,   // en milisegundos (Open-Notify da segundos)
-//   "message":   "success"
-// }
 app.get("/iss/posicion", async (req, res) => {
-  res.json({ ruta: "/iss/posicion", estado: "pendiente de implementar" });
+  try {
+    const response = await axios.get(ISS_URL, { timeout: 15000 });
+    const data = response.data;
+
+    res.json({
+      latitude: parseFloat(data.latitude),
+      longitude: parseFloat(data.longitude),
+      timestamp: data.timestamp * 1000,
+      message: "success",
+    });
+  } catch (error) {
+    console.error("[iss-tracker] Error:", error.message);
+    res.status(502).json({
+      error: "No se pudo obtener la posición de la ISS.",
+      details: error.message,
+    });
+  }
 });
 
 app.listen(PORT, () => {
