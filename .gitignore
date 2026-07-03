@@ -19,6 +19,7 @@ build/
 npm-debug.log*
 
 # Editor / OS
+.claude
 .vscode/
 .idea/
 .DS_Store
