@@ -68,24 +68,29 @@ app.post("/auth/login", async (req, res) => {
     return res.status(400).json({ error: "email y password son requeridos" });
   }
 
-  const emailNormalizado = email.trim().toLowerCase();
+  try {
+    const emailNormalizado = email.trim().toLowerCase();
 
-  const { rows } = await pool.query(
-    `SELECT id, email, password_hash FROM usuario WHERE email = $1`,
-    [emailNormalizado]
-  );
-  const usuario = rows[0];
+    const { rows } = await pool.query(
+      `SELECT id, email, password_hash FROM usuario WHERE email = $1`,
+      [emailNormalizado]
+    );
+    const usuario = rows[0];
 
-  // Mismo 401 si el usuario no existe o si la contraseña no coincide.
-  const passwordValida = usuario
-    ? await bcrypt.compare(password, usuario.password_hash)
-    : false;
+    // Mismo 401 si el usuario no existe o si la contraseña no coincide.
+    const passwordValida = usuario
+      ? await bcrypt.compare(password, usuario.password_hash)
+      : false;
 
-  if (!passwordValida) {
-    return res.status(401).json({ error: "Credenciales inválidas" });
+    if (!passwordValida) {
+      return res.status(401).json({ error: "Credenciales inválidas" });
+    }
+
+    res.json({ token: firmarToken({ id: usuario.id, email: usuario.email }) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error interno" });
   }
-
-  res.json({ token: firmarToken({ id: usuario.id, email: usuario.email }) });
 });
 
 // Arranca solo después de asegurar que la tabla existe.
