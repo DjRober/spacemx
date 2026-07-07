@@ -7,14 +7,8 @@
     </p>
 
     <div class="iss-grid">
-      <!-- Mapa (placeholder hasta conectar Open-Notify) -->
-      <div class="iss-map">
-        <div class="iss-map-content">
-          <span class="iss-map-icon">🛰️</span>
-          <p class="iss-map-text">Mapa en tiempo real (próximamente)</p>
-          <p class="iss-map-coords">Open-Notify · actualización cada pocos segundos</p>
-        </div>
-      </div>
+      <!-- Mapa Leaflet -->
+      <div ref="mapContainer" class="iss-map"></div>
 
       <!-- Panel lateral: posición + alertas -->
       <div class="iss-panel">
@@ -34,7 +28,6 @@
             <span class="stat-val">{{ updatedAt ?? '--:--:--' }}</span>
           </div>
 
-          <!-- Error silencioso si el servicio está apagado -->
           <p v-if="error" class="iss-error">⚠️ Sin conexión al servicio</p>
         </div>
 
@@ -59,35 +52,67 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 import { getIssLocation } from '../../services/issService.js'
 
-const latitude  = ref(null)
-const longitude = ref(null)
-const updatedAt = ref(null)
-const error     = ref(false)
+const latitude     = ref(null)
+const longitude    = ref(null)
+const updatedAt    = ref(null)
+const error        = ref(false)
+const mapContainer = ref(null)
 
+let map        = null
+let marker     = null
 let intervalId = null
+
+const issIcon = L.divIcon({
+  html: '🛰️',
+  className: 'iss-marker',
+  iconSize: [32, 32],
+  iconAnchor: [16, 16],
+})
 
 async function fetchPosition() {
   try {
-    const data  = await getIssLocation()
+    const data = await getIssLocation()
+
     latitude.value  = data.latitude.toFixed(4)
     longitude.value = data.longitude.toFixed(4)
     updatedAt.value = new Date(data.timestamp).toLocaleTimeString()
-    error.value = false
+    error.value     = false
+
+    if (marker) {
+      marker.setLatLng([data.latitude, data.longitude])
+      map.panTo([data.latitude, data.longitude])
+    }
   } catch (e) {
-    // Si el servicio está apagado no rompe la página, solo muestra el aviso
     error.value = true
   }
 }
 
-onMounted(() => {
-  fetchPosition()                          // primera carga inmediata
-  intervalId = setInterval(fetchPosition, 5000)  // luego cada 5 segundos
+onMounted(async () => {
+  map = L.map(mapContainer.value, {
+    center: [0, 0],
+    zoom: 2,
+    zoomControl: true,
+  })
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors',
+    maxZoom: 18,
+  }).addTo(map)
+
+  marker = L.marker([0, 0], { icon: issIcon }).addTo(map)
+  marker.bindPopup('🛰️ ISS — cargando posición...')
+
+  await fetchPosition()
+  intervalId = setInterval(fetchPosition, 5000)
 })
 
 onBeforeUnmount(() => {
-  clearInterval(intervalId)  // limpia el intervalo al salir de la sección
+  clearInterval(intervalId)
+  if (map) map.remove()
 })
 </script>
 
@@ -98,45 +123,21 @@ onBeforeUnmount(() => {
   gap: 24px;
 }
 
-/* ── Mapa ──────────────────────────────────────────────────────── */
 .iss-map {
-  min-height: 320px;
-  background: repeating-linear-gradient(
-    45deg,
-    var(--color-bg-card),
-    var(--color-bg-card) 12px,
-    var(--color-bg-elevated) 12px,
-    var(--color-bg-elevated) 24px
-  );
-  border: 1px dashed var(--color-border);
+  height: 380px;
   border-radius: 12px;
-  display: grid;
-  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  z-index: 0;
 }
 
-.iss-map-content {
-  text-align: center;
-  color: var(--color-text-secondary);
+:global(.iss-marker) {
+  background: none !important;
+  border: none !important;
+  font-size: 1.6rem;
+  line-height: 1;
 }
 
-.iss-map-icon {
-  font-size: 2.5rem;
-  display: block;
-  margin-bottom: 0.5rem;
-}
-
-.iss-map-text {
-  font-weight: 500;
-  margin: 0;
-}
-
-.iss-map-coords {
-  font-size: 0.8rem;
-  color: var(--color-accent);
-  margin-top: 0.25rem;
-}
-
-/* ── Panel lateral ─────────────────────────────────────────────── */
 .iss-panel {
   display: flex;
   flex-direction: column;
@@ -183,10 +184,13 @@ onBeforeUnmount(() => {
   margin-top: 0.75rem;
 }
 
-/* ── Responsive ───────────────────────────────────────────────── */
 @media (max-width: 820px) {
   .iss-grid {
     grid-template-columns: 1fr;
+  }
+
+  .iss-map {
+    height: 280px;
   }
 }
 </style>
