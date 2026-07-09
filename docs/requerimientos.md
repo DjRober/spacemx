@@ -26,8 +26,9 @@ SpaceMex busca que cualquier persona, sin importar su nivel técnico, pueda expl
 
 - Integración con NASA APOD API — foto astronómica del día.
 - Integración con NASA NeoWs API — asteroides cercanos en tiempo real.
-- Integración con InSight Mars Weather API — clima en Marte.
-- Integración con Open-Notify ISS Location — posición de la ISS.
+- Integración con la API MAAS/REMS (rover Curiosity) — clima en Marte.
+- Integración con la API "Where the ISS at?" (`wheretheiss.at`) — posición de la ISS.
+- Servicio propio: API de Autenticación — registro, login y emisión de JWT.
 - Servicio propio: API de Alertas ISS — notificaciones por ciudad.
 - Servicio propio: API de Reportes Espaciales — observaciones del usuario.
 - Buscador histórico de la Foto Astronómica del Día (APOD).
@@ -46,7 +47,7 @@ SpaceMex busca que cualquier persona, sin importar su nivel técnico, pueda expl
 | Frontend | Vue.js 3 + Tailwind CSS |
 | Backend | Node.js con Express |
 | SOA | Servicios independientes vía HTTP/REST |
-| APIs externas | NASA APOD, NeoWs, InSight, Open-Notify |
+| APIs externas | NASA APOD, NASA NeoWs, MAAS/REMS (Curiosity), Where the ISS at? (`wheretheiss.at`) |
 
 ## 3. Requerimientos funcionales
 
@@ -84,7 +85,13 @@ Describen CÓMO debe comportarse el sistema: rendimiento, seguridad, disponibili
 
 ## 5. Inventario de servicios SOA
 
-La aplicación está compuesta por **6 servicios independientes**: 4 servicios externos consumidos mediante APIs públicas y 2 servicios propios desarrollados por SpaceMex.
+La aplicación está compuesta por **7 servicios independientes**: 4 servicios wrapper que consumen APIs públicas y 3 servicios propios desarrollados por SpaceMex (autenticación, alertas y reportes).
+
+> **Nota (09/07/2026):** respecto al plan original, dos de las APIs externas fueron descartadas por alternativas más estables (ver §6):
+> - **Clima en Marte:** se dejó de usar NASA InSight (`/insight_weather/`, misión finalizada en 2022) y ahora se consume la API **MAAS/REMS** del rover Curiosity.
+> - **Posición de la ISS:** se dejó de usar Open-Notify (HTTP, inestable) y ahora se consume **"Where the ISS at?"** (`wheretheiss.at`, HTTPS).
+>
+> Además, la autenticación (RNF3) se extrajo de `reports-service` a un **`auth-service`** propio e independiente.
 
 ### 5.1 Servicios externos
 
@@ -130,47 +137,67 @@ Parámetros:
 
 **Datos que provee:** nombre del asteroide, diámetro estimado (mín/máx), velocidad relativa, distancia a la Tierra, indicador de peligrosidad.
 
-#### Servicio 3 — Clima en Marte (InSight)
+#### Servicio 3 — Clima en Marte (MAAS/REMS — Curiosity)
 
-Obtiene los datos meteorológicos más recientes registrados por el módulo InSight de NASA en la superficie de Marte, incluyendo temperatura, velocidad del viento y presión atmosférica.
+Obtiene los datos meteorológicos más recientes registrados en la superficie de Marte por la estación REMS del rover **Curiosity**, incluyendo temperatura, velocidad del viento y presión atmosférica.
 
-| Campo | Valor |
-|---|---|
-| Proveedor | NASA InSight Mars Weather Service |
-| Base URL | `https://api.nasa.gov` |
-| Endpoint | `/insight_weather/` |
-| Método HTTP | GET |
-
-Parámetros:
-
-| Parámetro | Tipo | Requerido | Descripción |
-|---|---|---|---|
-| `api_key` | string | Sí | Clave de autenticación NASA |
-| `feedtype` | string | Sí | Formato de respuesta; valor: `json` |
-| `ver` | number | Sí | Versión de la API; valor: `1.0` |
-
-**Datos que provee:** temperatura mínima y máxima (°C), velocidad y dirección del viento, presión atmosférica, sol marciano (día en Marte).
-
-#### Servicio 4 — Posición de la ISS en tiempo real (Open Notify)
-
-Obtiene las coordenadas geográficas actuales de la Estación Espacial Internacional (ISS) directamente desde los servidores de Open Notify, actualizándose cada pocos segundos.
+> **Cambio respecto al plan original:** se había planeado consumir NASA InSight (`/insight_weather/`), pero esa misión finalizó en diciembre de 2022 y su API ya no entrega datos nuevos. Se sustituyó por la API MAAS/REMS del rover Curiosity, que sigue activa. Como esta fuente comunitaria puede caerse, el servicio mantiene un objeto de ejemplo de respaldo para que la sección no se rompa.
 
 | Campo | Valor |
 |---|---|
-| Proveedor | Open Notify |
-| Base URL | `http://api.open-notify.org` |
-| Endpoint | `/iss-now.json` |
+| Proveedor | MAAS / REMS — Centro de Astrobiología (CAB, CSIC-INTA), datos del rover Curiosity |
+| Base URL | `http://cab.inta-csic.es` |
+| Endpoint | `/rems/wp-content/plugins/marsweather-widget/api.php` |
 | Método HTTP | GET |
 
-**Parámetros:** no requiere parámetros ni autenticación.
+**Parámetros:** no requiere parámetros ni autenticación (API pública).
 
-**Datos que provee:** latitud y longitud actuales de la ISS, timestamp Unix de la medición.
+**Datos que provee:** temperatura mínima y máxima (°C), velocidad del viento, presión atmosférica, estación marciana y sol marciano (día en Marte).
+
+#### Servicio 4 — Posición de la ISS en tiempo real (Where the ISS at?)
+
+Obtiene las coordenadas geográficas actuales de la Estación Espacial Internacional (ISS) desde la API **"Where the ISS at?"**, actualizándose cada pocos segundos.
+
+> **Cambio respecto al plan original:** se había planeado consumir Open-Notify (`api.open-notify.org/iss-now.json`), pero esa API es HTTP (sin HTTPS) y suele estar caída. Se sustituyó por `wheretheiss.at`, que es HTTPS, más estable y devuelve los mismos datos de latitud/longitud. El contrato hacia el frontend no cambia.
+
+| Campo | Valor |
+|---|---|
+| Proveedor | Where the ISS at? |
+| Base URL | `https://api.wheretheiss.at` |
+| Endpoint | `/v1/satellites/25544` (`25544` = ID NORAD de la ISS) |
+| Método HTTP | GET |
+
+**Parámetros:** no requiere parámetros ni autenticación. Límite recomendado: ~1 petición por segundo.
+
+**Datos que provee:** latitud y longitud actuales de la ISS y timestamp Unix de la medición (el wrapper lo entrega en milisegundos).
 
 ### 5.2 Servicios propios — SpaceMex
 
-#### Servicio 5 — API de Alertas ISS
+#### Servicio 5 — API de Autenticación
+
+Servicio propio que gestiona el registro y el inicio de sesión de los usuarios y emite un **JWT** que los demás servicios propios (por ahora `reports-service`) usan para autorizar peticiones. Es dueño de la tabla `usuario`. Se extrajo de `reports-service` para separar la responsabilidad de identidad (RNF3, RNF5).
+
+| Campo | Valor |
+|---|---|
+| Proveedor | SpaceMex (desarrollo propio) |
+| Base URL | `http://localhost:3005` (desarrollo) |
+| Endpoints | `/auth/registro` · `/auth/login` |
+| Método HTTP | POST |
+
+Operaciones disponibles:
+
+| Endpoint | Método | Body JSON | Respuesta |
+|---|---|---|---|
+| `/auth/registro` | POST | `nombre`, `email`, `password`, `idioma?` | `{ token, usuario }` (201) |
+| `/auth/login` | POST | `email`, `password` | `{ token }` |
+
+**Datos que maneja:** ID de usuario (UUID), nombre, email (único, normalizado a minúsculas), hash de contraseña (bcrypt — nunca se devuelve), idioma preferido (`es`/`en`), fecha de registro.
+
+#### Servicio 6 — API de Alertas ISS
 
 Servicio desarrollado internamente por SpaceMex que notifica al usuario cuando la ISS pasará sobre su ciudad. Calcula la hora aproximada de paso, la duración visible y la elevación máxima.
+
+> **Estado (09/07/2026):** este servicio aún **no está implementado** (solo existe su especificación). El frontend muestra datos de ejemplo (mock) en la sección de alertas hasta que se desarrolle el algoritmo de predicción de pasos.
 
 | Campo | Valor |
 |---|---|
@@ -189,16 +216,17 @@ Parámetros (body JSON):
 
 **Datos que provee:** hora de inicio del paso (UTC), duración en segundos, elevación máxima, dirección de entrada y salida.
 
-#### Servicio 6 — API de Reportes Espaciales
+#### Servicio 7 — API de Reportes Espaciales
 
-Servicio propio que permite a los usuarios autenticados registrar, consultar, editar y eliminar sus observaciones astronómicas personales. Los reportes pueden marcarse como públicos para ser vistos por la comunidad.
+Servicio propio que permite a los usuarios autenticados registrar, consultar, editar y eliminar sus observaciones astronómicas personales. Los reportes pueden marcarse como públicos para ser vistos por la comunidad. **No emite tokens**: valida el JWT que emite `auth-service` (comparten el mismo `JWT_SECRET`) y toma el `usuario_id` del token.
 
 | Campo | Valor |
 |---|---|
 | Proveedor | SpaceMex (desarrollo propio) |
-| Base URL | `https://api.spacemex.dev` (propuesta) |
+| Base URL | `http://localhost:3006` (desarrollo) — `https://api.spacemex.dev` (propuesta) |
 | Endpoints | `/reportes` · `/reportes/{id}` |
 | Métodos HTTP | GET · POST · PUT · DELETE |
+| Autenticación | Header `Authorization: Bearer <token>` (JWT de `auth-service`) |
 
 Operaciones disponibles:
 
@@ -216,3 +244,6 @@ Operaciones disponibles:
 | Fecha | Acuerdo / Nota | Responsable |
 |---|---|---|
 | 27/05/2026 | Se decide expandir la lista original de requerimientos funcionales agregando el buscador histórico de APOD (RF7), filtros para asteroides NeoWs (RF9) y un manejador de caché (RF8). | Diego Martinez |
+| 09/07/2026 | Se descarta NASA InSight (misión finalizada, API sin datos nuevos) y se adopta la API MAAS/REMS del rover Curiosity para el clima de Marte (RF3), con objeto de ejemplo de respaldo. | Diego Martinez |
+| 09/07/2026 | Se descarta Open-Notify (HTTP inestable) y se adopta "Where the ISS at?" (`wheretheiss.at`, HTTPS) para la posición de la ISS (RF4). El contrato hacia el frontend no cambia. | Iker |
+| 09/07/2026 | Se extrae la autenticación (RNF3) de `reports-service` a un `auth-service` propio, dueño de la tabla `usuario`, que emite el JWT. `reports-service` pasa a ser solo CRUD de reportes y validador del token. | Roberto Pérez |

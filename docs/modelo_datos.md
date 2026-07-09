@@ -4,16 +4,17 @@
 
 ## 1. Alcance y propiedad de datos (SOA)
 
-De los 6 servicios SOA, solo los **servicios propios** requieren persistencia:
+De los 7 servicios SOA, solo los **servicios propios** requieren persistencia:
 
-- `reports-service` — es dueño de `usuario`, `reporte`, `reporte_imagen` (RF6, RNF3)
-- `iss-alerts-service` — es dueño de `ciudad`, `suscripcion_alerta`; persistencia **opcional** (el MVP calcula pasos on-demand, RF5)
+- `auth-service` — es dueño de `usuario` (RNF3)
+- `reports-service` — es dueño de `reporte` (y, a futuro, `reporte_imagen`) (RF6)
+- `iss-alerts-service` — sería dueño de `ciudad`, `suscripcion_alerta`; persistencia **opcional** y aún no implementada (el MVP calcularía pasos on-demand, RF5)
 
-Los servicios wrapper (`apod-service`, `neows-service`, `mars-weather-service`, `iss-tracker-service`) no tienen base de datos; `apod-service` y `mars-weather-service` usan una **caché en memoria** (RF8), sección 6.
+Los servicios wrapper (`apod-service`, `neows-service`, `mars-weather-service`, `iss-tracker-service`) no tienen base de datos; `apod-service` usa una **caché en memoria** (RF8), sección 6.
 
-> **Regla SOA (RNF5):** cada servicio es dueño de su propia base de datos. Ninguna FK física cruza el límite de un servicio. `suscripcion_alerta.usuario_id` es una **referencia lógica** al usuario de `reports-service` (sin `FOREIGN KEY` constraint) — ver sección 5.
+> **Regla SOA (RNF5):** cada servicio es dueño de su propia base de datos. Ninguna FK física cruza el límite de un servicio.
 >
-> **Nota sobre autenticación:** en este MVP `usuario` vive en `reports-service`. Si más adelante se separa un `auth-service` dueño de los usuarios, entonces `reporte.usuario_id` también pasa a ser referencia lógica bajo la misma regla.
+> **Nota sobre autenticación (09/07/2026):** la tabla `usuario` se movió de `reports-service` a un **`auth-service`** propio, que emite el JWT. En consecuencia, `reporte.usuario_id` (en `reports-service`) y `suscripcion_alerta.usuario_id` (en `iss-alerts-service`) son **referencias lógicas** al usuario de `auth-service`, **sin** `FOREIGN KEY` constraint: su validez la garantiza el token de autenticación en la capa de aplicación, no la BD.
 
 **Identificadores:** todas las PK son **UUID** (v4). En SOA evita acoplar servicios a secuencias compartidas y hace seguras las referencias lógicas entre servicios (no colisionan ni filtran conteos).
 
@@ -21,8 +22,8 @@ Los servicios wrapper (`apod-service`, `neows-service`, `mars-weather-service`, 
 
 ```mermaid
 erDiagram
-    USUARIO ||--o{ REPORTE : crea
-    REPORTE ||--o{ REPORTE_IMAGEN : contiene
+    USUARIO ||..o{ REPORTE : "crea — ref. lógica (sin FK, cruza servicio)"
+    REPORTE ||--o{ REPORTE_IMAGEN : "contiene (futuro)"
     USUARIO ||..o{ SUSCRIPCION_ALERTA : "ref. lógica (sin FK, cruza servicio)"
     CIUDAD ||--o{ SUSCRIPCION_ALERTA : "ubica (futuro)"
 
@@ -31,12 +32,12 @@ erDiagram
         string nombre
         citext email "único, minúsculas"
         string password_hash
-        char idioma "es | en — CHECK"
+        char idioma_preferido "es | en — CHECK"
         timestamptz fecha_registro
     }
     REPORTE {
         uuid id PK
-        uuid usuario_id FK
+        uuid usuario_id "ref. lógica (sin FK)"
         string titulo
         text descripcion
         timestamptz fecha_observacion
@@ -69,31 +70,31 @@ erDiagram
     }
 ```
 
-## 3. Entidades — `reports-service`
+## 3. Entidades
 
-### 3.1 Usuario
+### 3.1 Usuario — `auth-service`
 
-Necesario para autenticación (RNF3) y para asociar reportes a su autor.
+Necesario para autenticación (RNF3) y para asociar reportes a su autor. Vive en `auth-service` (ver schema en `services/auth-service/schema.sql`).
 
 | Campo | Tipo | Restricciones | Descripción |
 |---|---|---|---|
-| `id` | UUID | PK | Identificador único |
-| `nombre` | varchar | requerido | Nombre del usuario |
-| `email` | citext | requerido, único | Login. `citext` (o normalizar a minúsculas al guardar) para que el `UNIQUE` no distinga mayúsculas |
-| `password_hash` | varchar | requerido | Contraseña con hash (bcrypt/argon2) — **nunca en texto plano** |
-| `idioma` | char(2) | `CHECK (idioma IN ('es','en'))`, default `es` | Soporta RNF9 |
+| `id` | UUID | PK, `DEFAULT gen_random_uuid()` | Identificador único |
+| `nombre` | varchar(255) | requerido | Nombre del usuario |
+| `email` | varchar(255) | requerido, único | Login. Se **normaliza a minúsculas** al guardar para que el `UNIQUE` no distinga mayúsculas |
+| `password_hash` | varchar(255) | requerido | Contraseña con hash (bcrypt) — **nunca en texto plano** |
+| `idioma_preferido` | char(2) | `CHECK (idioma_preferido IN ('es','en'))`, default `es` | Soporta RNF9 |
 | `fecha_registro` | timestamptz | default `now()` | Fecha de creación de la cuenta |
 
-> Nunca se almacena la contraseña en texto plano ni se devuelve `password_hash` en respuestas de la API.
+> Nunca se almacena la contraseña en texto plano ni se devuelve `password_hash` en respuestas de la API. La implementación usa `VARCHAR(255)` con normalización a minúsculas en la app (en lugar de `citext`).
 
-### 3.2 Reporte (Observación astronómica)
+### 3.2 Reporte (Observación astronómica) — `reports-service`
 
-Corresponde a RF6 y al Servicio 6 del documento de requerimientos.
+Corresponde a RF6 y al Servicio 7 del documento de requerimientos. Vive en `reports-service` (ver `services/reports-service/schema.sql`).
 
 | Campo | Tipo | Restricciones | Descripción |
 |---|---|---|---|
 | `id` | UUID | PK | Identificador único del reporte |
-| `usuario_id` | UUID | FK → Usuario, requerido | Autor del reporte |
+| `usuario_id` | UUID | **referencia lógica** al usuario de `auth-service` (sin FK), requerido | Autor del reporte (se toma del JWT) |
 | `titulo` | varchar | requerido | Título de la observación |
 | `descripcion` | text | requerido | Descripción de lo observado |
 | `fecha_observacion` | timestamptz | requerido | **Fecha y hora** de la observación (un tránsito de la ISS o un meteoro se define al minuto → se necesita hora + zona) |
@@ -108,9 +109,9 @@ Corresponde a RF6 y al Servicio 6 del documento de requerimientos.
 - Un usuario solo puede editar (`PUT`) o eliminar (`DELETE`) sus propios reportes (`reporte.usuario_id == usuario_autenticado.id`).
 - `GET /reportes` devuelve los reportes del usuario autenticado; un endpoint público adicional puede listar solo los de `es_publico = true` para la vista comunitaria.
 
-### 3.3 Reporte-Imagen
+### 3.3 Reporte-Imagen *(modelo futuro — aún no implementado)*
 
-Separada de `reporte` para permitir 0..N imágenes por observación (1NF).
+Separada de `reporte` para permitir 0..N imágenes por observación (1NF). El `schema.sql` actual de `reports-service` solo crea la tabla `reporte`; esta tabla se documenta para una iteración futura.
 
 | Campo | Tipo | Restricciones | Descripción |
 |---|---|---|---|
@@ -122,14 +123,16 @@ Separada de `reporte` para permitir 0..N imágenes por observación (1NF).
 
 > Si el MVP se limita a **una imagen** por reporte, se mantiene esta tabla con `UNIQUE(reporte_id)`; así el modelo no cambia si luego se permiten varias.
 
-## 4. Índices recomendados (`reports-service`)
+## 4. Índices recomendados
 
-| Tabla | Índice | Para qué |
-|---|---|---|
-| `reporte` | `(usuario_id)` | Listar los reportes de un usuario (`GET /reportes`) |
-| `reporte` | `(es_publico, fecha_creacion)` | Listado comunitario: `WHERE es_publico = true ORDER BY fecha_creacion DESC` |
-| `reporte_imagen` | `(reporte_id)` | Traer las imágenes de un reporte |
-| `usuario` | `UNIQUE(email)` | Login y unicidad |
+| Servicio | Tabla | Índice | Para qué |
+|---|---|---|---|
+| `reports-service` | `reporte` | `(usuario_id)` | Listar los reportes de un usuario (`GET /reportes`) |
+| `reports-service` | `reporte` | `(es_publico, fecha_creacion)` | Listado comunitario: `WHERE es_publico = true ORDER BY fecha_creacion DESC` |
+| `reports-service` | `reporte_imagen` | `(reporte_id)` | Traer las imágenes de un reporte *(futuro)* |
+| `auth-service` | `usuario` | `UNIQUE(email)` | Login y unicidad |
+
+> Los dos índices de `reporte` (`idx_reporte_usuario_id` e `idx_reporte_publico`) ya están creados en `services/reports-service/schema.sql`. El `UNIQUE(email)` está en `services/auth-service/schema.sql`.
 
 ## 5. Entidad opcional — `iss-alerts-service`
 
@@ -168,19 +171,23 @@ Extraída para eliminar la dependencia transitiva `nombre → coordenadas` (3NF)
 
 ## 6. Estructura de caché (RF8) — `apod-service` y `mars-weather-service`
 
-Caché **clave-valor en memoria** (ej. `node-cache`), no relacional:
+Caché **clave-valor en memoria**, no relacional:
 
-### Caché APOD
+### Caché APOD *(implementada)*
 
-| Clave | Valor | Expiración |
-|---|---|---|
-| `apod:YYYY-MM-DD` | `{ titulo, descripcion, url, media_type, fecha, autor }` | Día actual: hasta medianoche UTC. Fechas históricas: sin expiración (no cambian). |
-
-### Caché Clima Marte
+Implementada con un `Map` en memoria dentro de `apod-service/index.js`.
 
 | Clave | Valor | Expiración |
 |---|---|---|
-| `mars_weather:latest` | `{ sol, temperatura_min, temperatura_max, viento_velocidad, viento_direccion, presion, fecha_actualizacion }` | Configurable (ej. 3–6 h), según la frecuencia de la fuente. |
+| `today` / `YYYY-MM-DD` | `{ date, title, explanation, url, media_type, copyright }` | Día actual: hasta el cambio de día UTC. Fechas históricas: sin expiración (no cambian). |
+
+### Caché Clima Marte *(pendiente)*
+
+Aún **no implementada**: `mars-weather-service` hoy solo cae a un objeto de ejemplo cuando la fuente MAAS/REMS falla. Diseño propuesto:
+
+| Clave | Valor | Expiración |
+|---|---|---|
+| `mars_weather:latest` | `{ sol, temperatura_min, temperatura_max, viento_velocidad, presion, fecha_actualizacion }` | Configurable (ej. 3–6 h), según la frecuencia de la fuente. |
 
 ## 7. Consideraciones generales
 

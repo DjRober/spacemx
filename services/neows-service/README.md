@@ -11,7 +11,12 @@ Servicio que consume **NASA NeoWs API** (`/neo/rest/v1/feed`) para asteroides ce
 - Endpoint: `/neo/rest/v1/feed`
 - Params: `api_key`, `start_date`, `end_date` (máx. 7 días)
 
-## Pendiente
+## Endpoint propio
 
-- Definir endpoint propio (ej. `GET /asteroides?start_date=...&end_date=...&size=...&hazardous=...`)
-- Lógica de filtrado de tamaño/peligrosidad sobre la respuesta de NeoWs
+`GET /asteroides?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD` (ambos opcionales, por
+defecto hoy; NeoWs acepta un rango máximo de 7 días). Devuelve un arreglo de asteroides
+ya mapeado: `id`, `name`, `diameter_max_km`, `velocity_km_h`, `close_approach_date`,
+`is_potentially_hazardous`.
+
+> El filtrado por **tamaño** y **peligrosidad** (RF9) se resuelve en el frontend sobre
+> este arreglo (ya incluye diámetro y el indicador de peligrosidad), no como query params.

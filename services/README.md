@@ -1,7 +1,8 @@
 # Servicios SpaceMex (backend SOA)
 
-Cada carpeta es un servicio independiente (Node.js + Express) que envuelve una API
-externa y la expone con un formato simple para el frontend.
+Cada carpeta es un servicio independiente (Node.js + Express). Los cuatro primeros
+envuelven una API externa; `auth-service` y `reports-service` son propios (con BD
+PostgreSQL). `iss-alerts-service` aún no está implementado.
 
 ## Puertos y rutas
 
@@ -11,6 +12,14 @@ externa y la expone con un formato simple para el frontend.
 | `mars-weather-service` | 3002 | `GET /marte/clima` | Diego |
 | `neows-service` | 3003 | `GET /asteroides?start_date=&end_date=` | Daniel |
 | `iss-tracker-service` | 3004 | `GET /iss/posicion` | Iker |
+| `auth-service` | 3005 | `POST /auth/registro` · `POST /auth/login` | Roberto |
+| `reports-service` | 3006 | `GET/POST /reportes` · `PUT/DELETE /reportes/:id` (JWT) | Roberto |
+| `iss-alerts-service` | — | `POST /alertas/paso` *(no implementado)* | — |
+
+Wrappers y las APIs externas que consumen: `apod` → NASA APOD; `neows` → NASA NeoWs;
+`mars-weather` → **MAAS/REMS (Curiosity)**; `iss-tracker` → **Where the ISS at?**
+(`wheretheiss.at`). Open-Notify y NASA InSight quedaron descartadas (ver READMEs de
+cada servicio).
 
 ## Cómo correr tu servicio
 
@@ -22,8 +31,10 @@ npm install                  # descarga las dependencias (crea node_modules/)
 cp .env.example .env         # crea tu archivo de variables
 ```
 
-Luego edita el `.env` y pon tu llave de la NASA (los de NASA: apod, mars, neows).
-La llave gratuita se saca en https://api.nasa.gov — `DEMO_KEY` también sirve para probar.
+Luego edita el `.env` y pon tu llave de la NASA. Solo la necesitan **apod** y **neows**
+(la llave gratuita se saca en https://api.nasa.gov — `DEMO_KEY` también sirve para probar).
+`mars-weather` e `iss-tracker` no usan llave. `auth-service` y `reports-service` requieren
+`DATABASE_URL` (PostgreSQL) y **el mismo** `JWT_SECRET` en sus `.env`.
 
 Para arrancar el servidor:
 
@@ -58,6 +69,7 @@ Abre la URL que imprime la consola **en el navegador**. Si ves datos en JSON, fu
 
 ## Nota sobre el clima de Marte
 
-La API de InSight ya no manda datos nuevos (la misión terminó en 2022). Por eso
-`mars-weather-service` devuelve un objeto de ejemplo cuando la NASA viene vacía.
-Ver el README de ese servicio para las alternativas.
+Se dejó de usar NASA InSight (la misión terminó en 2022 y su API ya no manda datos
+nuevos) y ahora `mars-weather-service` consume la API **MAAS/REMS** del rover Curiosity.
+Como esa fuente comunitaria se cae con frecuencia, el servicio devuelve un objeto de
+ejemplo de respaldo si no hay datos. Ver el README de ese servicio.

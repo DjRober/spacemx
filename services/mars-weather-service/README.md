@@ -1,15 +1,19 @@
 # mars-weather-service
 
-Servicio que consume **NASA InSight Mars Weather API** (`/insight_weather/`).
+Servicio que consume la **API MAAS/REMS** (clima del rover Curiosity, CAB CSIC-INTA) y
+expone el clima de Marte con un formato simple para el frontend.
 
 - **RF3** — Temperatura, viento y presión atmosférica en Marte
-- **RF8** — Cache Handler (datos meteorológicos cambian poco)
+- **RF8** — Cache Handler (datos meteorológicos cambian poco) — *pendiente*
 
 ## API externa
 
-- Base URL: `https://api.nasa.gov`
-- Endpoint: `/insight_weather/`
-- Params: `api_key`, `feedtype=json`, `ver=1.0`
+- Base URL: `http://cab.inta-csic.es`
+- Endpoint: `/rems/wp-content/plugins/marsweather-widget/api.php`
+- Sin parámetros ni autenticación (API pública)
+
+> **Nota:** el plan original consumía NASA InSight (`/insight_weather/` en `api.nasa.gov`),
+> pero esa misión terminó en 2022 y su API ya no entrega datos nuevos. Ver abajo.
 
 ## ⚠️ Situación de InSight
 
@@ -36,4 +40,5 @@ para que la sección no se rompa si el servicio externo está caído.
 
 ## Pendiente
 
-- Implementar capa de caché (RF8) — ver `// TODO (RF8)` en `index.js`
+- Implementar la capa de caché (RF8): hoy `index.js` no cachea, solo cae al objeto
+  `EJEMPLO` cuando MAAS no responde.
