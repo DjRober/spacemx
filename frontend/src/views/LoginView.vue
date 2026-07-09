@@ -36,8 +36,10 @@
           />
         </div>
 
-        <button class="btn login-btn" @click="handleLogin">
-          Iniciar sesión
+        <p v-if="errorMsg" class="error-msg text-danger">{{ errorMsg }}</p>
+
+        <button class="btn login-btn" @click="handleLogin" :disabled="cargando">
+          {{ cargando ? 'Iniciando…' : 'Iniciar sesión' }}
         </button>
       </div>
 
@@ -61,10 +63,30 @@ const router = useRouter()
 
 const email = ref('')
 const password = ref('')
+const errorMsg = ref('')
+const cargando = ref(false)
 
-function handleLogin() {
-  auth.login(email.value, password.value)
-  router.push('/dashboard')
+async function handleLogin() {
+  errorMsg.value = ''
+
+  if (!email.value || !password.value) {
+    errorMsg.value = 'Ingresa tu correo y contraseña.'
+    return
+  }
+
+  cargando.value = true
+  try {
+    await auth.login(email.value, password.value)
+    router.push('/dashboard')
+  } catch (e) {
+    errorMsg.value = e.message?.includes('fetch')
+      ? 'No se pudo conectar con el servidor.'
+      : e.message === 'Credenciales inválidas'
+      ? 'Correo o contraseña incorrectos.'
+      : e.message || 'No se pudo iniciar sesión.'
+  } finally {
+    cargando.value = false
+  }
 }
 </script>
 
@@ -130,6 +152,12 @@ function handleLogin() {
   margin-top: 0.25rem;
   padding: 0.75rem;
   font-size: 0.95rem;
+}
+
+.error-msg {
+  font-size: 0.8rem;
+  color: var(--color-danger);
+  margin: 0;
 }
 
 /* ── Footer link ───────────────────────────────────────────────── */
