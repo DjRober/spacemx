@@ -14,11 +14,12 @@ Hoy, ver esta información implica abrir varias páginas distintas y, en muchos 
 |---|---|---|
 | Foto Astronómica del Día (APOD) + buscador histórico | NASA APOD API | RF1, RF7 |
 | Asteroides cercanos (NeoWs) + filtros | NASA NeoWs API | RF2, RF9 |
-| Clima en Marte (temperatura, viento, presión) | NASA InSight Mars Weather | RF3 |
-| Posición de la ISS en tiempo real | Open-Notify ISS Location | RF4 |
-| Alertas de paso de la ISS por tu ciudad | API propia — Alertas ISS | RF5 |
+| Clima en Marte (temperatura, viento, presión) | MAAS/REMS — rover Curiosity | RF3 |
+| Posición de la ISS en tiempo real | Where the ISS at? (`wheretheiss.at`) | RF4 |
+| Alertas de paso de la ISS por tu ciudad | API propia — Alertas ISS *(mock, no implementado)* | RF5 |
+| Autenticación (registro / login / JWT) | API propia — Auth | RNF3 |
 | Mis Reportes (observaciones propias, CRUD) | API propia — Reportes | RF6 |
-| Cache Handler (APOD y clima Marte) | — | RF8 |
+| Cache Handler (APOD) | — | RF8 |
 
 Detalle completo en [`docs/requerimientos.md`](docs/requerimientos.md).
 
@@ -27,7 +28,7 @@ Detalle completo en [`docs/requerimientos.md`](docs/requerimientos.md).
 - **Frontend:** Vue.js 3 + Tailwind CSS — una sola página con scroll y navbar sticky con anclas
 - **Backend:** Node.js + Express
 - **Arquitectura:** SOA — servicios independientes vía HTTP/REST
-- **APIs externas:** NASA APOD, NASA NeoWs, NASA InSight Mars Weather, Open-Notify ISS
+- **APIs externas:** NASA APOD, NASA NeoWs, MAAS/REMS (Curiosity), Where the ISS at? (`wheretheiss.at`)
 
 ## Estructura del repositorio
 
@@ -42,11 +43,12 @@ SpaceMx/
 ├── frontend/                   # Dashboard Vue 3 + Tailwind CSS
 └── services/                   # Servicios SOA (independientes)
     ├── apod-service/           # Foto del día + buscador histórico + caché (RF1, RF7, RF8)
+    ├── mars-weather-service/   # Clima en Marte — MAAS/REMS Curiosity (RF3)
     ├── neows-service/          # Asteroides cercanos + filtros (RF2, RF9)
-    ├── mars-weather-service/   # Clima en Marte + caché (RF3, RF8)
-    ├── iss-tracker-service/    # Posición ISS en tiempo real (RF4)
-    ├── iss-alerts-service/     # Alertas de paso de la ISS (RF5) — propio
-    └── reports-service/        # Reportes espaciales / observaciones (RF6) — propio, con auth
+    ├── iss-tracker-service/    # Posición ISS en tiempo real — wheretheiss.at (RF4)
+    ├── auth-service/           # Registro, login y JWT (RNF3) — propio
+    ├── reports-service/        # Reportes espaciales / observaciones (RF6) — propio, valida JWT
+    └── iss-alerts-service/     # Alertas de paso de la ISS (RF5) — propio, no implementado
 ```
 
 Cada servicio en `services/` es independiente y desacoplado (RNF5): puede fallar, actualizarse o escalar sin afectar a los demás.
@@ -56,8 +58,6 @@ Cada servicio en `services/` es independiente y desacoplado (RNF5): puede fallar
 - [`docs/requerimientos.md`](docs/requerimientos.md) — Requerimientos funcionales (RF) y no funcionales (RNF)
 - [`docs/arquitectura.md`](docs/arquitectura.md) — Arquitectura SOA y diagramas de servicios
 - [`docs/modelo_datos.md`](docs/modelo_datos.md) — Modelo de datos de los servicios propios
-
-> Estos documentos se desarrollarán en los siguientes pasos del proyecto.
 
 ## Instalación y uso local
 
@@ -113,13 +113,14 @@ Repite el paso para cada servicio que quieras usar:
 | Servicio | Puerto por defecto |
 |---|---|
 | `apod-service` | 3001 |
-| `neows-service` | 3002 |
-| `mars-weather-service` | 3003 |
+| `mars-weather-service` | 3002 |
+| `neows-service` | 3003 |
 | `iss-tracker-service` | 3004 |
-| `iss-alerts-service` | 3005 |
+| `auth-service` | 3005 |
 | `reports-service` | 3006 |
+| `iss-alerts-service` | — (no implementado) |
 
-> Los servicios aún están en desarrollo. Esta sección se actualizará conforme se implementen.
+> **Variables de entorno por servicio:** los servicios de NASA (`apod`, `neows`) leen `NASA_API_KEY` de su propio `.env` (cae a `DEMO_KEY` si falta). `auth-service` y `reports-service` requieren `DATABASE_URL` (PostgreSQL) y **el mismo** `JWT_SECRET`. `mars-weather-service` e `iss-tracker-service` no requieren llave.
 
 ### Scripts disponibles (frontend)
 
@@ -133,6 +134,10 @@ Repite el paso para cada servicio que quieras usar:
 
 - [x] Documento de requerimientos (v1.0)
 - [x] Mockup de estructura base del dashboard
-- [ ] Estructura de repositorio inicial
-- [ ] Documentación técnica (arquitectura, modelo de datos)
-- [ ] Implementación de servicios y frontend
+- [x] Estructura de repositorio inicial
+- [x] Documentación técnica (arquitectura, modelo de datos)
+- [x] Servicios wrapper (APOD, Marte, NeoWs, ISS) implementados
+- [x] Autenticación (`auth-service`) y reportes (`reports-service`) con JWT
+- [x] Frontend conectado a los servicios reales
+- [ ] `iss-alerts-service` (RF5) — pendiente (el frontend usa datos mock)
+- [ ] Caché de `mars-weather-service` (RF8) — pendiente

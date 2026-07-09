@@ -12,7 +12,15 @@ Servicio que consume **NASA APOD API** (`/planetary/apod`) para la foto astronó
 - Endpoint: `/planetary/apod`
 - Params: `api_key`, `date` (opcional), `thumbs` (opcional)
 
-## Pendiente
+## Endpoint propio
 
-- Definir endpoints propios (ej. `GET /apod`, `GET /apod/:date`)
-- Implementar capa de caché
+- `GET /apod` → foto de hoy
+- `GET /apod?date=YYYY-MM-DD` → foto de una fecha pasada (RF7)
+
+Respuesta: `{ date, title, explanation, url, media_type, copyright }`.
+
+## Caché (RF8)
+
+Implementada en `index.js` con un `Map` en memoria: la foto de hoy expira al cambio de
+día UTC; las fechas pasadas no expiran (no cambian). Reduce latencia y respeta el
+rate-limit de `DEMO_KEY` (30 req/hora).
