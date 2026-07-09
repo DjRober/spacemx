@@ -60,15 +60,18 @@
             v-model="confirm"
             type="password"
             class="input"
-            :class="{ 'input--error': errorMsg }"
+            :class="{ 'input--error': passwordNoCoincide }"
             placeholder="••••••••"
             autocomplete="new-password"
             required
           />
-          <p v-if="errorMsg" class="error-msg text-danger">{{ errorMsg }}</p>
         </div>
 
-        <button type="submit" class="btn register-btn">Crear cuenta</button>
+        <p v-if="errorMsg" class="error-msg text-danger">{{ errorMsg }}</p>
+
+        <button type="submit" class="btn register-btn" :disabled="cargando">
+          {{ cargando ? 'Creando…' : 'Crear cuenta' }}
+        </button>
 
       </form>
 
@@ -95,17 +98,30 @@ const email    = ref('')
 const password = ref('')
 const confirm  = ref('')
 const errorMsg = ref('')
+const cargando = ref(false)
+const passwordNoCoincide = ref(false)
 
-function handleRegister() {
+async function handleRegister() {
   errorMsg.value = ''
+  passwordNoCoincide.value = false
 
   if (password.value !== confirm.value) {
+    passwordNoCoincide.value = true
     errorMsg.value = 'Las contraseñas no coinciden.'
     return
   }
 
-  auth.login(email.value, password.value)
-  router.push('/dashboard')
+  cargando.value = true
+  try {
+    await auth.registro(nombre.value, email.value, password.value)
+    router.push('/dashboard')
+  } catch (e) {
+    errorMsg.value = e.message?.includes('fetch')
+      ? 'No se pudo conectar con el servidor.'
+      : e.message || 'No se pudo crear la cuenta.'
+  } finally {
+    cargando.value = false
+  }
 }
 </script>
 
