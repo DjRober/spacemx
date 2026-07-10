@@ -31,19 +31,40 @@
           <p v-if="error" class="iss-error">⚠️ Sin conexión al servicio</p>
         </div>
 
-        <form class="card" @submit.prevent>
+        <!-- Formulario de alertas -->
+        <form class="card" @submit.prevent="handleAlertSubmit">
           <h3 class="iss-card-title">🔔 Alertas de paso</h3>
-          <label for="iss-city" class="field-label">Tu ciudad / ubicación</label>
+          <label for="iss-city" class="field-label">Latitud, Longitud</label>
           <input
             id="iss-city"
+            v-model="coordInput"
             type="text"
             class="input"
-            placeholder="lat, lon o nombre de ciudad"
+            placeholder="Ej: 19.4326, -99.1332"
+            :disabled="loadingPasses"
           />
-          <button type="submit" class="btn iss-alert-btn">
-            Avisarme cuando pase la ISS
+          <button type="submit" class="btn iss-alert-btn" :disabled="loadingPasses">
+            <span v-if="loadingPasses">Calculando...</span>
+            <span v-else>Avisarme cuando pase la ISS</span>
           </button>
           <p class="iss-alert-hint">→ hora de paso, duración y elevación máx.</p>
+
+          <!-- Error de alertas -->
+          <p v-if="alertError" class="iss-error">⚠️ {{ alertError }}</p>
+
+          <!-- Lista de próximos pasos -->
+          <ul v-if="passes.length" class="iss-passes">
+            <li v-for="(pass, i) in passes" :key="i" class="iss-pass-item">
+              <div class="pass-row">
+                <span class="pass-label">Paso {{ i + 1 }}</span>
+                <span class="pass-time">{{ formatTime(pass.inicio_utc) }}</span>
+              </div>
+              <div class="pass-meta">
+                <span>⏱ {{ pass.duracion_s }}s</span>
+                <span>📐 Elev. máx. {{ pass.elevacion_max_grados }}°</span>
+              </div>
+            </li>
+          </ul>
         </form>
       </div>
     </div>
@@ -54,13 +75,20 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { getIssLocation } from '../../services/issService.js'
+import { getIssLocation, getIssPasses } from '../../services/issService.js'
 
+// ── Posición ISS ────────────────────────────────────────────────
 const latitude     = ref(null)
 const longitude    = ref(null)
 const updatedAt    = ref(null)
 const error        = ref(false)
 const mapContainer = ref(null)
+
+// ── Alertas de paso ─────────────────────────────────────────────
+const coordInput   = ref('')
+const passes       = ref([])
+const loadingPasses = ref(false)
+const alertError   = ref('')
 
 let map        = null
 let marker     = null
@@ -73,10 +101,27 @@ const issIcon = L.divIcon({
   iconAnchor: [16, 16],
 })
 
+// ── Helpers ─────────────────────────────────────────────────────
+function formatTime(risetime) {
+  // risetime puede venir como timestamp Unix (número) o string ISO
+  const date = typeof risetime === 'number'
+    ? new Date(risetime * 1000)
+    : new Date(risetime)
+  return isNaN(date) ? risetime : date.toLocaleString('es-MX')
+}
+
+function parseCoords(input) {
+  const parts = input.split(',').map((s) => parseFloat(s.trim()))
+  if (parts.length !== 2 || parts.some(isNaN)) return null
+  const [lat, lon] = parts
+  if (lat < -90 || lat > 90 || lon < -180 || lon > 180) return null
+  return { lat, lon }
+}
+
+// ── Posición en tiempo real ──────────────────────────────────────
 async function fetchPosition() {
   try {
     const data = await getIssLocation()
-
     latitude.value  = data.latitude.toFixed(4)
     longitude.value = data.longitude.toFixed(4)
     updatedAt.value = new Date(data.timestamp).toLocaleTimeString()
@@ -91,12 +136,34 @@ async function fetchPosition() {
   }
 }
 
+// ── Alertas de paso ──────────────────────────────────────────────
+async function handleAlertSubmit() {
+  alertError.value = ''
+  passes.value     = []
+
+  const coords = parseCoords(coordInput.value)
+  if (!coords) {
+    alertError.value = 'Ingresa coordenadas válidas: latitud, longitud (Ej: 19.43, -99.13)'
+    return
+  }
+
+  loadingPasses.value = true
+  try {
+    const result = await getIssPasses(coords.lat, coords.lon)
+    passes.value = Array.isArray(result) ? result : []
+    if (!passes.value.length) {
+      alertError.value = 'No se encontraron próximos pasos para esa ubicación.'
+    }
+  } catch (e) {
+    alertError.value = 'No se pudo conectar al servicio de alertas. Intenta más tarde.'
+  } finally {
+    loadingPasses.value = false
+  }
+}
+
+// ── Ciclo de vida ────────────────────────────────────────────────
 onMounted(async () => {
-  map = L.map(mapContainer.value, {
-    center: [0, 0],
-    zoom: 2,
-    zoomControl: true,
-  })
+  map = L.map(mapContainer.value, { center: [0, 0], zoom: 2, zoomControl: true })
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors',
@@ -182,6 +249,49 @@ onBeforeUnmount(() => {
   font-size: 0.75rem;
   color: var(--color-warning);
   margin-top: 0.75rem;
+}
+
+/* ── Lista de pasos ─────────────────────────────────────────────── */
+.iss-passes {
+  list-style: none;
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.iss-pass-item {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+}
+
+.pass-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.pass-label {
+  font-size: 0.72rem;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pass-time {
+  font-size: 0.8rem;
+  color: var(--color-accent);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.pass-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
 }
 
 @media (max-width: 820px) {
