@@ -1,7 +1,8 @@
 // services/issService.js
 // RF4 / RF5 — Servicio de la ISS (posición y alertas de paso)
 
-const ISS_SERVICE_URL = 'http://localhost:3004'
+const ISS_SERVICE_URL   = 'http://localhost:3004'
+const ISS_ALERTS_URL    = 'http://localhost:3007'
 
 /**
  * Obtiene la posición actual de la ISS desde el iss-tracker-service.
@@ -14,24 +15,18 @@ export async function getIssLocation() {
 }
 
 /**
- * Simula el registro de una ciudad para alertas de paso de la ISS.
- * @param {string} city - nombre de la ciudad ingresada en el formulario
+ * Solicita los próximos pasos de la ISS sobre una ubicación al iss-alerts-service.
+ * @param {number} latitud  - Latitud de la ciudad del usuario
+ * @param {number} longitud - Longitud de la ciudad del usuario
+ * @param {number} [n_pasos=3] - Número de próximos pasos a consultar
+ * @returns {Promise<Array<{inicio_utc: string, duracion_s: number, elevacion_max_grados: number}>>}
  */
-export function subscribeIssAlert(city) {
-  return {
-    success: true,
-    city: city || 'Ciudad de México',
-    message: 'Mock: alerta registrada (sin conexión real todavía)',
-  }
-}
-
-/**
- * Simula una lista de próximos pasos de la ISS sobre una ciudad.
- */
-export function getIssPasses() {
-  return [
-    { date: '2026-06-18', time: '20:45', duration_minutes: 6 },
-    { date: '2026-06-19', time: '19:58', duration_minutes: 4 },
-    { date: '2026-06-21', time: '21:10', duration_minutes: 5 },
-  ]
+export async function getIssPasses(latitud, longitud, n_pasos = 3) {
+  const response = await fetch(`${ISS_ALERTS_URL}/alertas/paso`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ latitud, longitud, n_pasos }),
+  })
+  if (!response.ok) throw new Error(`Error ${response.status}`)
+  return response.json()
 }
