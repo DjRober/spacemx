@@ -19,7 +19,7 @@ export async function getIssLocation() {
  * @param {number} latitud  - Latitud de la ciudad del usuario
  * @param {number} longitud - Longitud de la ciudad del usuario
  * @param {number} [n_pasos=3] - Número de próximos pasos a consultar
- * @returns {Promise<Array<{risetime: number, duration: number, max_elevation: number}>>}
+ * @returns {Promise<Array<{inicio_utc: string, duracion_s: number, elevacion_max_grados: number}>>}
  */
 export async function getIssPasses(latitud, longitud, n_pasos = 3) {
   const response = await fetch(`${ISS_ALERTS_URL}/alertas/paso`, {
