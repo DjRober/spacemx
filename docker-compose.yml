@@ -1,0 +1,141 @@
+# SpaceMex — orquestador completo (Postgres + 7 servicios + frontend).
+#
+#   docker compose up --build
+#
+# Todas las variables tienen un valor por defecto (sintaxis ${VAR:-default}),
+# así que esto arranca sin crear ningún .env. Para usar tu llave real de NASA
+# o un JWT_SECRET propio, copia .env.example a .env en la raíz.
+
+name: spacemex
+
+services:
+  # ── Base de datos ───────────────────────────────────────────────
+  # La usan auth-service y reports-service. Ambos aplican su schema.sql
+  # solos al arrancar, por eso no hace falta montar scripts de init.
+  postgres:
+    image: postgres:16-alpine
+    container_name: spacemex-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-spacemex}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    # Sin healthcheck, `depends_on` solo espera a que el contenedor exista,
+    # no a que Postgres acepte conexiones: auth y reports arrancarían antes
+    # de tiempo y morirían con process.exit(1).
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-spacemex}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  # ── Wrappers de APIs externas (sin BD) ──────────────────────────
+  apod-service:
+    build: ./services/apod-service
+    container_name: spacemex-apod
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      NASA_API_KEY: ${NASA_API_KEY:-DEMO_KEY}
+    restart: unless-stopped
+
+  mars-weather-service:
+    build: ./services/mars-weather-service
+    container_name: spacemex-mars
+    ports:
+      - "3002:3002"
+    environment:
+      PORT: 3002
+    restart: unless-stopped
+
+  neows-service:
+    build: ./services/neows-service
+    container_name: spacemex-neows
+    ports:
+      - "3003:3003"
+    environment:
+      PORT: 3003
+      NASA_API_KEY: ${NASA_API_KEY:-DEMO_KEY}
+    restart: unless-stopped
+
+  iss-tracker-service:
+    build: ./services/iss-tracker-service
+    container_name: spacemex-iss-tracker
+    ports:
+      - "3004:3004"
+    environment:
+      PORT: 3004
+    restart: unless-stopped
+
+  iss-alerts-service:
+    build: ./services/iss-alerts-service
+    container_name: spacemex-iss-alerts
+    ports:
+      - "3007:3007"
+    environment:
+      PORT: 3007
+      TLE_URL: ${TLE_URL:-https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=TLE}
+    restart: unless-stopped
+
+  # ── Servicios propios (con BD) ──────────────────────────────────
+  # auth firma los JWT y reports los valida: MISMO JWT_SECRET y MISMA BD.
+  auth-service:
+    build: ./services/auth-service
+    container_name: spacemex-auth
+    ports:
+      - "3005:3005"
+    environment:
+      PORT: 3005
+      JWT_SECRET: ${JWT_SECRET:-dev_secret_solo_para_desarrollo_cambialo}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-24h}
+      # Host "postgres" = nombre del servicio en esta red de compose,
+      # no "localhost" (dentro del contenedor localhost es él mismo).
+      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-spacemex}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  reports-service:
+    build: ./services/reports-service
+    container_name: spacemex-reports
+    ports:
+      - "3006:3006"
+    environment:
+      PORT: 3006
+      JWT_SECRET: ${JWT_SECRET:-dev_secret_solo_para_desarrollo_cambialo}
+      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-spacemex}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ── Frontend ────────────────────────────────────────────────────
+  # Vite en modo dev. El navegador (no el contenedor) es quien llama a
+  # los servicios, por eso las URLs localhost:300X del código funcionan:
+  # resuelven al host, donde compose publica los puertos.
+  frontend:
+    build: ./frontend
+    container_name: spacemex-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_APOD_API_URL: ${VITE_APOD_API_URL:-http://localhost:3001/apod}
+    depends_on:
+      - apod-service
+      - mars-weather-service
+      - neows-service
+      - iss-tracker-service
+      - iss-alerts-service
+      - auth-service
+      - reports-service
+    restart: unless-stopped
+
+volumes:
+  postgres-data:

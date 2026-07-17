@@ -1,0 +1,14 @@
+# node_modules del host: se reinstala dentro de la imagen con npm ci
+# (el del host viene compilado para Windows y romperia el contenedor).
+node_modules
+npm-debug.log*
+
+# Secretos: la imagen recibe las variables por `environment` en el compose.
+# Sin esta linea, el .env con la llave real de NASA quedaria dentro de la imagen.
+.env
+.env.*
+!.env.example
+
+Dockerfile
+.dockerignore
+README.md
