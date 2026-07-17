@@ -28,9 +28,25 @@ const MAAS_URL =
 // El clima de Marte cambia por "sol marciano" (cada ~24.6 horas terrestres),
 // así que un TTL de 3-6 horas es más que suficiente para el MVP.
 // Patrón idéntico al de apod-service: Map<string, { data, expiresAt }>
-const TTL_MS = 4 * 60 * 60 * 1000; // 4 horas
+const TTL_MS = 4 * 60 * 60 * 1000; // 4 horas — dato bueno de MAAS
+// El respaldo se cachea poco: si MAAS falla no queremos re-consultarlo (y
+// pagar su latencia) en cada petición, pero sí reintentar pronto.
+const TTL_RESPALDO_MS = 10 * 60 * 1000; // 10 minutos
 const CACHE_KEY = "mars_weather:latest";
 const cache = new Map();
+
+function guardarEnCache(data, ttl) {
+  cache.set(CACHE_KEY, { data, expiresAt: Date.now() + ttl });
+}
+
+// MAAS manda "--" (no null) cuando no tiene dato para un campo.
+const sinDato = (v) => v === undefined || v === null || v === "--" || v === "";
+
+function aNumero(v, respaldo) {
+  if (sinDato(v)) return respaldo;
+  const n = Number(v);
+  return Number.isNaN(n) ? respaldo : n;
+}
 
 // GET /marte/clima
 app.get("/marte/clima", async (req, res) => {
@@ -45,31 +61,35 @@ app.get("/marte/clima", async (req, res) => {
     const response = await axios.get(MAAS_URL, { timeout: 6000 });
     const raw = response.data;
 
-    const report = raw?.reports?.[0];
+    // La API devuelve { descriptions, soles: [...] } — el más reciente va primero.
+    const sole = raw?.soles?.[0];
 
-    if (!report) {
-      // Respondió pero sin datos útiles → devolver ejemplo sin cachear
+    if (!sole) {
+      // Respondió pero sin datos útiles → servir el ejemplo y cachearlo un rato
+      // para no re-consultar MAAS en cada petición.
+      console.warn("MAAS respondió sin soles; usando datos de ejemplo");
+      guardarEnCache(EJEMPLO, TTL_RESPALDO_MS);
+      res.set("X-Cache", "FALLBACK");
       return res.json(EJEMPLO);
     }
 
     // Mapear al formato del contrato
     const clima = {
-      sol: `Sol ${report.sol}`,
-      terrestrial_date: report.terrestrial_date,
-      season: report.season || EJEMPLO.season,
+      sol: sinDato(sole.sol) ? EJEMPLO.sol : `Sol ${sole.sol}`,
+      terrestrial_date: sinDato(sole.terrestrial_date)
+        ? EJEMPLO.terrestrial_date
+        : sole.terrestrial_date,
+      season: sinDato(sole.season) ? EJEMPLO.season : sole.season,
       temperature: {
-        max: Number(report.max_temp ?? EJEMPLO.temperature.max),
-        min: Number(report.min_temp ?? EJEMPLO.temperature.min),
+        max: aNumero(sole.max_temp, EJEMPLO.temperature.max),
+        min: aNumero(sole.min_temp, EJEMPLO.temperature.min),
       },
-      pressure: Number(report.pressure ?? EJEMPLO.pressure),
-      wind_speed: Number(report.wind_speed ?? EJEMPLO.wind_speed),
+      pressure: aNumero(sole.pressure, EJEMPLO.pressure),
+      wind_speed: aNumero(sole.wind_speed, EJEMPLO.wind_speed),
     };
 
     // 2. Guardar en caché con TTL de 4 horas
-    cache.set(CACHE_KEY, {
-      data: clima,
-      expiresAt: Date.now() + TTL_MS,
-    });
+    guardarEnCache(clima, TTL_MS);
 
     res.set("X-Cache", "MISS");
     res.json(clima);
@@ -82,8 +102,11 @@ app.get("/marte/clima", async (req, res) => {
       return res.json(cacheExpirado.data);
     }
 
-    // Sin caché → devolver ejemplo sin tirar error 500
+    // Sin caché → servir el ejemplo y cachearlo un rato (evita pagar el
+    // timeout de MAAS en cada petición mientras siga caído).
     console.warn("MAAS no disponible, usando datos de ejemplo:", err.message);
+    guardarEnCache(EJEMPLO, TTL_RESPALDO_MS);
+    res.set("X-Cache", "FALLBACK");
     res.json(EJEMPLO);
   }
 });
