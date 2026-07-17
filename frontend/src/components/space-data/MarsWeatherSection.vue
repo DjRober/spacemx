@@ -1,36 +1,33 @@
 <template>
   <section id="marte" class="section mars-section">
-    <h2 class="section__title">Clima en Marte</h2>
-    <p class="section__subtitle">
-      Datos del módulo InSight / rover Curiosity en el cráter Gale. Tres
-      indicadores de igual jerarquía.
-    </p>
+    <h2 class="section__title">{{ t("marte.title") }}</h2>
+    <p class="section__subtitle">{{ t("marte.subtitle") }}</p>
 
     <div v-if="weather" class="mars-grid">
       <div class="card mars-card">
         <div class="mars-icon">🌡️</div>
-        <div class="mars-lbl">Temperatura</div>
+        <div class="mars-lbl">{{ t("marte.temperatura") }}</div>
         <div class="mars-val">{{ weather.temperature.max }} °C</div>
         <div class="mars-lbl">
-          mín {{ weather.temperature.min }}° / máx {{ weather.temperature.max }}°
+          {{ t("marte.minMax", { min: weather.temperature.min, max: weather.temperature.max }) }}
         </div>
-        <span class="cache-tag">⚡ servido desde caché</span>
+        <span class="cache-tag">{{ t("marte.cacheTag") }}</span>
       </div>
 
       <div class="card mars-card">
         <div class="mars-icon">💨</div>
-        <div class="mars-lbl">Viento</div>
+        <div class="mars-lbl">{{ t("marte.viento") }}</div>
         <div class="mars-val">{{ weather.wind_speed }} <small>km/h</small></div>
         <div class="mars-lbl">{{ weather.season }}</div>
-        <span class="cache-tag">⚡ servido desde caché</span>
+        <span class="cache-tag">{{ t("marte.cacheTag") }}</span>
       </div>
 
       <div class="card mars-card">
         <div class="mars-icon">🧭</div>
-        <div class="mars-lbl">Presión atmosférica</div>
+        <div class="mars-lbl">{{ t("marte.presion") }}</div>
         <div class="mars-val">{{ weather.pressure }} <small>Pa</small></div>
         <div class="mars-lbl">{{ weather.sol }}</div>
-        <span class="cache-tag">⚡ servido desde caché</span>
+        <span class="cache-tag">{{ t("marte.cacheTag") }}</span>
       </div>
     </div>
   </section>
@@ -38,8 +35,10 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import { marsWeatherService } from "../../services/marsWeatherService";
 
+const { t } = useI18n();
 const weather = ref(null);
 
 onMounted(async () => {

@@ -8,40 +8,40 @@
         <span class="brand-name">SpaceMex</span>
       </div>
 
-      <h1 class="register-title">Crear cuenta</h1>
-      <p class="register-sub">Únete al dashboard espacial</p>
+      <h1 class="register-title">{{ t("auth.register.title") }}</h1>
+      <p class="register-sub">{{ t("auth.register.subtitle") }}</p>
 
       <!-- Formulario -->
       <form class="register-form" @submit.prevent="handleRegister">
 
         <div class="field">
-          <label class="field-label" for="reg-nombre">Nombre completo</label>
+          <label class="field-label" for="reg-nombre">{{ t("auth.register.nombre") }}</label>
           <input
             id="reg-nombre"
             v-model="nombre"
             type="text"
             class="input"
-            placeholder="Roberto Pérez"
+            :placeholder="t('auth.register.nombrePlaceholder')"
             autocomplete="name"
             required
           />
         </div>
 
         <div class="field">
-          <label class="field-label" for="reg-email">Correo electrónico</label>
+          <label class="field-label" for="reg-email">{{ t("auth.register.email") }}</label>
           <input
             id="reg-email"
             v-model="email"
             type="email"
             class="input"
-            placeholder="roberto@spacemex.dev"
+            :placeholder="t('auth.register.emailPlaceholder')"
             autocomplete="email"
             required
           />
         </div>
 
         <div class="field">
-          <label class="field-label" for="reg-password">Contraseña</label>
+          <label class="field-label" for="reg-password">{{ t("auth.register.password") }}</label>
           <input
             id="reg-password"
             v-model="password"
@@ -54,7 +54,7 @@
         </div>
 
         <div class="field">
-          <label class="field-label" for="reg-confirm">Confirmar contraseña</label>
+          <label class="field-label" for="reg-confirm">{{ t("auth.register.confirm") }}</label>
           <input
             id="reg-confirm"
             v-model="confirm"
@@ -70,15 +70,15 @@
         <p v-if="errorMsg" class="error-msg text-danger">{{ errorMsg }}</p>
 
         <button type="submit" class="btn register-btn" :disabled="cargando">
-          {{ cargando ? 'Creando…' : 'Crear cuenta' }}
+          {{ cargando ? t("auth.register.btnCargando") : t("auth.register.btn") }}
         </button>
 
       </form>
 
       <!-- Link a login -->
       <p class="login-hint">
-        ¿Ya tienes cuenta?
-        <router-link to="/login" class="login-link">Inicia sesión</router-link>
+        {{ t("auth.register.hasAccount") }}
+        <router-link to="/login" class="login-link">{{ t("auth.register.login") }}</router-link>
       </p>
 
     </div>
@@ -87,9 +87,11 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useAuth } from '../composables/useAuth.js'
 import { useRouter } from 'vue-router'
 
+const { t } = useI18n()
 const auth = useAuth()
 const router = useRouter()
 
@@ -107,7 +109,7 @@ async function handleRegister() {
 
   if (password.value !== confirm.value) {
     passwordNoCoincide.value = true
-    errorMsg.value = 'Las contraseñas no coinciden.'
+    errorMsg.value = t('auth.register.errorNoCoinciden')
     return
   }
 
@@ -117,8 +119,8 @@ async function handleRegister() {
     router.push('/dashboard')
   } catch (e) {
     errorMsg.value = e.message?.includes('fetch')
-      ? 'No se pudo conectar con el servidor.'
-      : e.message || 'No se pudo crear la cuenta.'
+      ? t('auth.register.errorConexion')
+      : e.message || t('auth.register.errorGenerico')
   } finally {
     cargando.value = false
   }

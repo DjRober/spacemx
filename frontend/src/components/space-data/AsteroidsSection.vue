@@ -1,39 +1,38 @@
 <template>
   <section id="asteroides" class="section asteroids-section">
-    <h2 class="section__title">Asteroides cercanos (NeoWs)</h2>
-    <p class="section__subtitle">
-      Objetos próximos a la Tierra detectados por el sistema NeoWs de la NASA.
-      Barra de filtros arriba, resultados abajo.
-    </p>
+    <h2 class="section__title">{{ t("asteroides.title") }}</h2>
+    <p class="section__subtitle">{{ t("asteroides.subtitle") }}</p>
 
     <!-- Barra de filtros -->
     <div class="filters">
       <div>
-        <label class="field-label" for="ast-desde">Desde</label>
+        <label class="field-label" for="ast-desde">{{ t("asteroides.filtros.desde") }}</label>
         <input id="ast-desde" v-model="filters.desde" type="date" class="input" />
       </div>
       <div>
-        <label class="field-label" for="ast-hasta">Hasta</label>
+        <label class="field-label" for="ast-hasta">{{ t("asteroides.filtros.hasta") }}</label>
         <input id="ast-hasta" v-model="filters.hasta" type="date" class="input" />
       </div>
       <div>
-        <label class="field-label" for="ast-size">Tamaño estimado</label>
+        <label class="field-label" for="ast-size">{{ t("asteroides.filtros.tamano") }}</label>
         <select id="ast-size" v-model="filters.size" class="select">
-          <option value="all">Todos</option>
-          <option value="small">&lt; 100 m</option>
-          <option value="mid">100–500 m</option>
-          <option value="large">&gt; 500 m</option>
+          <option value="all">{{ t("asteroides.filtros.todos") }}</option>
+          <option value="small">{{ t("asteroides.filtros.small") }}</option>
+          <option value="mid">{{ t("asteroides.filtros.mid") }}</option>
+          <option value="large">{{ t("asteroides.filtros.large") }}</option>
         </select>
       </div>
       <div>
-        <label class="field-label" for="ast-hazard">Peligrosidad</label>
+        <label class="field-label" for="ast-hazard">{{ t("asteroides.filtros.peligrosidad") }}</label>
         <select id="ast-hazard" v-model="filters.hazard" class="select">
-          <option value="all">Todas</option>
-          <option value="yes">Peligroso</option>
-          <option value="no">No peligroso</option>
+          <option value="all">{{ t("asteroides.filtros.todas") }}</option>
+          <option value="yes">{{ t("asteroides.filtros.peligroso") }}</option>
+          <option value="no">{{ t("asteroides.filtros.noPeligroso") }}</option>
         </select>
       </div>
-      <button class="btn btn--ghost" @click="resetFilters">Limpiar</button>
+      <button class="btn btn--ghost" @click="resetFilters">
+        {{ t("asteroides.filtros.limpiar") }}
+      </button>
     </div>
 
     <!-- Tabla de resultados -->
@@ -41,28 +40,28 @@
       <table>
         <thead>
           <tr>
-            <th>Nombre</th>
-            <th>Diámetro máx.</th>
-            <th>Velocidad</th>
-            <th>Fecha de enfoque</th>
-            <th>Peligroso</th>
+            <th>{{ t("asteroides.tabla.nombre") }}</th>
+            <th>{{ t("asteroides.tabla.diametro") }}</th>
+            <th>{{ t("asteroides.tabla.velocidad") }}</th>
+            <th>{{ t("asteroides.tabla.fecha") }}</th>
+            <th>{{ t("asteroides.tabla.peligroso") }}</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="asteroid in filteredAsteroids" :key="asteroid.id">
             <td class="name-cell">{{ asteroid.name }}</td>
             <td>{{ asteroid.diameter_max_km }} km</td>
-            <td>{{ Number(asteroid.velocity_km_h).toLocaleString("es-MX") }} km/h</td>
+            <td>{{ formatearVelocidad(asteroid.velocity_km_h) }} km/h</td>
             <td>{{ asteroid.close_approach_date }}</td>
             <td>
               <span :class="asteroid.is_potentially_hazardous ? 'tag bad' : 'tag ok'">
-                {{ asteroid.is_potentially_hazardous ? "⚠ Sí" : "✓ No" }}
+                {{ asteroid.is_potentially_hazardous ? t("asteroides.tabla.si") : t("asteroides.tabla.no") }}
               </span>
             </td>
           </tr>
           <tr v-if="filteredAsteroids.length === 0">
             <td colspan="5" class="empty-row">
-              No se encontraron asteroides con esos filtros.
+              {{ t("asteroides.tabla.vacio") }}
             </td>
           </tr>
         </tbody>
@@ -73,7 +72,15 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import { neowsService } from "../../services/neowsService";
+
+const { t, locale } = useI18n();
+
+// El separador de miles cambia según el idioma (1,234 en inglés / 1.234 en español)
+function formatearVelocidad(v) {
+  return Number(v).toLocaleString(locale.value === "en" ? "en-US" : "es-MX");
+}
 
 const asteroids = ref([]);
 const filters = reactive({

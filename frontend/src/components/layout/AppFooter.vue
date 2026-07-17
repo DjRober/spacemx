@@ -1,15 +1,14 @@
 <template>
   <footer class="footer">
     <p class="footer__text">
-      SpaceMex &copy; {{ year }} · NASA Space Dashboard — Arquitectura SOA. Datos
-      provistos por
+      SpaceMex &copy; {{ year }} · {{ t("footer.tagline") }} {{ t("footer.dataBy") }}
       <a
         href="https://api.nasa.gov/"
         target="_blank"
         rel="noopener noreferrer"
         class="footer__link"
       >NASA Open APIs</a>
-      y
+      {{ t("footer.and") }}
       <a
         href="http://open-notify.org/"
         target="_blank"
@@ -21,6 +20,9 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 const year = new Date().getFullYear()
 </script>
 

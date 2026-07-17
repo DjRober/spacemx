@@ -82,4 +82,127 @@ export default {
       errorEliminar: "Error al eliminar el reporte.",
     },
   },
+
+  // ── APOD ───────────────────────────────────────────────────────
+  apod: {
+    title: "Foto Astronómica del Día",
+    subtitle:
+      "Lo primero que ve el usuario: la imagen protagonista del universo, su descripción científica y un buscador histórico.",
+    searchLabel: "Buscador histórico — ver foto de otra fecha",
+    btnBuscar: "Buscar",
+    btnBuscando: "Buscando",
+    error: "No se pudo cargar la foto",
+  },
+
+  // ── ISS ────────────────────────────────────────────────────────
+  iss: {
+    title: "Estación Espacial Internacional",
+    subtitle:
+      "Mapa interactivo con la posición en vivo de la ISS y panel de alertas de paso por tu ciudad.",
+    posicion: {
+      title: "Posición actual",
+      latitud: "Latitud",
+      longitud: "Longitud",
+      actualizado: "Actualizado",
+      sinConexion: "Sin conexión al servicio",
+    },
+    alertas: {
+      title: "🔔 Alertas de paso",
+      label: "Latitud, Longitud",
+      placeholder: "Ej: 19.4326, -99.1332",
+      btn: "Avisarme cuando pase la ISS",
+      btnCalculando: "Calculando...",
+      hint: "→ hora de paso, duración y elevación máx.",
+      paso: "Paso",
+      elevMax: "Elev. máx.",
+      errorCoords: "Ingresa coordenadas válidas: latitud, longitud (Ej: 19.43, -99.13)",
+      errorSinPasos: "No se encontraron próximos pasos para esa ubicación.",
+      errorServicio: "No se pudo conectar al servicio de alertas. Intenta más tarde.",
+    },
+  },
+
+  // ── Marte ──────────────────────────────────────────────────────
+  marte: {
+    title: "Clima en Marte",
+    subtitle:
+      "Datos del módulo InSight / rover Curiosity en el cráter Gale. Tres indicadores de igual jerarquía.",
+    temperatura: "Temperatura",
+    minMax: "mín {min}° / máx {max}°",
+    viento: "Viento",
+    presion: "Presión atmosférica",
+    cacheTag: "⚡ servido desde caché",
+  },
+
+  // ── Asteroides ─────────────────────────────────────────────────
+  asteroides: {
+    title: "Asteroides cercanos (NeoWs)",
+    subtitle:
+      "Objetos próximos a la Tierra detectados por el sistema NeoWs de la NASA. Barra de filtros arriba, resultados abajo.",
+    filtros: {
+      desde: "Desde",
+      hasta: "Hasta",
+      tamano: "Tamaño estimado",
+      todos: "Todos",
+      small: "< 100 m",
+      mid: "100–500 m",
+      large: "> 500 m",
+      peligrosidad: "Peligrosidad",
+      todas: "Todas",
+      peligroso: "Peligroso",
+      noPeligroso: "No peligroso",
+      limpiar: "Limpiar",
+    },
+    tabla: {
+      nombre: "Nombre",
+      diametro: "Diámetro máx.",
+      velocidad: "Velocidad",
+      fecha: "Fecha de enfoque",
+      peligroso: "Peligroso",
+      si: "⚠ Sí",
+      no: "✓ No",
+      vacio: "No se encontraron asteroides con esos filtros.",
+    },
+  },
+
+  // ── Autenticación ──────────────────────────────────────────────
+  auth: {
+    brandSub: "NASA Space Dashboard",
+    login: {
+      email: "Correo electrónico",
+      emailPlaceholder: "tucorreo@ejemplo.com",
+      password: "Contraseña",
+      btn: "Iniciar sesión",
+      btnCargando: "Iniciando…",
+      noAccount: "¿No tienes cuenta?",
+      register: "Regístrate",
+      errorCampos: "Ingresa tu correo y contraseña.",
+      errorCredenciales: "Correo o contraseña incorrectos.",
+      errorConexion: "No se pudo conectar con el servidor.",
+      errorGenerico: "No se pudo iniciar sesión.",
+    },
+    register: {
+      title: "Crear cuenta",
+      subtitle: "Únete al dashboard espacial",
+      nombre: "Nombre completo",
+      nombrePlaceholder: "Roberto Pérez",
+      email: "Correo electrónico",
+      emailPlaceholder: "roberto@spacemex.dev",
+      password: "Contraseña",
+      confirm: "Confirmar contraseña",
+      btn: "Crear cuenta",
+      btnCargando: "Creando…",
+      hasAccount: "¿Ya tienes cuenta?",
+      login: "Inicia sesión",
+      errorNoCoinciden: "Las contraseñas no coinciden.",
+      errorConexion: "No se pudo conectar con el servidor.",
+      errorGenerico: "No se pudo crear la cuenta.",
+    },
+  },
+
+  // ── Footer ─────────────────────────────────────────────────────
+  footer: {
+    tagline: "NASA Space Dashboard — Arquitectura SOA.",
+    dataBy: "Datos provistos por",
+    and: "y",
+  },
 };

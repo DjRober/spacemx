@@ -82,4 +82,127 @@ export default {
       errorEliminar: "Error deleting the report.",
     },
   },
+
+  // ── APOD ───────────────────────────────────────────────────────
+  apod: {
+    title: "Astronomy Picture of the Day",
+    subtitle:
+      "The first thing you see: the universe's featured image, its scientific description and a historical search tool.",
+    searchLabel: "Historical search — view a photo from another date",
+    btnBuscar: "Search",
+    btnBuscando: "Searching",
+    error: "Could not load the photo",
+  },
+
+  // ── ISS ────────────────────────────────────────────────────────
+  iss: {
+    title: "International Space Station",
+    subtitle:
+      "Interactive map with the ISS live position and a pass alerts panel for your city.",
+    posicion: {
+      title: "Current position",
+      latitud: "Latitude",
+      longitud: "Longitude",
+      actualizado: "Updated",
+      sinConexion: "No connection to the service",
+    },
+    alertas: {
+      title: "🔔 Pass alerts",
+      label: "Latitude, Longitude",
+      placeholder: "E.g. 19.4326, -99.1332",
+      btn: "Notify me when the ISS passes",
+      btnCalculando: "Calculating...",
+      hint: "→ pass time, duration and max elevation.",
+      paso: "Pass",
+      elevMax: "Max elev.",
+      errorCoords: "Enter valid coordinates: latitude, longitude (E.g. 19.43, -99.13)",
+      errorSinPasos: "No upcoming passes found for that location.",
+      errorServicio: "Could not connect to the alerts service. Try again later.",
+    },
+  },
+
+  // ── Marte ──────────────────────────────────────────────────────
+  marte: {
+    title: "Mars Weather",
+    subtitle:
+      "Data from the InSight lander / Curiosity rover in Gale crater. Three indicators of equal importance.",
+    temperatura: "Temperature",
+    minMax: "min {min}° / max {max}°",
+    viento: "Wind",
+    presion: "Atmospheric pressure",
+    cacheTag: "⚡ served from cache",
+  },
+
+  // ── Asteroides ─────────────────────────────────────────────────
+  asteroides: {
+    title: "Near-Earth asteroids (NeoWs)",
+    subtitle:
+      "Objects near Earth detected by NASA's NeoWs system. Filter bar above, results below.",
+    filtros: {
+      desde: "From",
+      hasta: "To",
+      tamano: "Estimated size",
+      todos: "All",
+      small: "< 100 m",
+      mid: "100–500 m",
+      large: "> 500 m",
+      peligrosidad: "Hazard level",
+      todas: "All",
+      peligroso: "Hazardous",
+      noPeligroso: "Not hazardous",
+      limpiar: "Clear",
+    },
+    tabla: {
+      nombre: "Name",
+      diametro: "Max diameter",
+      velocidad: "Speed",
+      fecha: "Close approach date",
+      peligroso: "Hazardous",
+      si: "⚠ Yes",
+      no: "✓ No",
+      vacio: "No asteroids found with those filters.",
+    },
+  },
+
+  // ── Autenticación ──────────────────────────────────────────────
+  auth: {
+    brandSub: "NASA Space Dashboard",
+    login: {
+      email: "Email address",
+      emailPlaceholder: "youremail@example.com",
+      password: "Password",
+      btn: "Sign in",
+      btnCargando: "Signing in…",
+      noAccount: "Don't have an account?",
+      register: "Sign up",
+      errorCampos: "Enter your email and password.",
+      errorCredenciales: "Incorrect email or password.",
+      errorConexion: "Could not connect to the server.",
+      errorGenerico: "Could not sign in.",
+    },
+    register: {
+      title: "Create account",
+      subtitle: "Join the space dashboard",
+      nombre: "Full name",
+      nombrePlaceholder: "Roberto Pérez",
+      email: "Email address",
+      emailPlaceholder: "roberto@spacemex.dev",
+      password: "Password",
+      confirm: "Confirm password",
+      btn: "Create account",
+      btnCargando: "Creating…",
+      hasAccount: "Already have an account?",
+      login: "Sign in",
+      errorNoCoinciden: "Passwords do not match.",
+      errorConexion: "Could not connect to the server.",
+      errorGenerico: "Could not create the account.",
+    },
+  },
+
+  // ── Footer ─────────────────────────────────────────────────────
+  footer: {
+    tagline: "NASA Space Dashboard — SOA Architecture.",
+    dataBy: "Data provided by",
+    and: "and",
+  },
 };
