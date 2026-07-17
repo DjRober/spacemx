@@ -1,10 +1,7 @@
 <template>
   <section id="iss" class="section iss-section">
-    <h2 class="section__title">Estación Espacial Internacional</h2>
-    <p class="section__subtitle">
-      Mapa interactivo con la posición en vivo de la ISS y panel de alertas de
-      paso por tu ciudad.
-    </p>
+    <h2 class="section__title">{{ t("iss.title") }}</h2>
+    <p class="section__subtitle">{{ t("iss.subtitle") }}</p>
 
     <div class="iss-grid">
       <!-- Mapa Leaflet -->
@@ -13,41 +10,41 @@
       <!-- Panel lateral: posición + alertas -->
       <div class="iss-panel">
         <div class="card">
-          <h3 class="iss-card-title">Posición actual</h3>
+          <h3 class="iss-card-title">{{ t("iss.posicion.title") }}</h3>
 
           <div class="stat">
-            <span>Latitud</span>
+            <span>{{ t("iss.posicion.latitud") }}</span>
             <span class="stat-val">{{ latitude ?? '--.----' }}</span>
           </div>
           <div class="stat">
-            <span>Longitud</span>
+            <span>{{ t("iss.posicion.longitud") }}</span>
             <span class="stat-val">{{ longitude ?? '--.----' }}</span>
           </div>
           <div class="stat stat--last">
-            <span>Actualizado</span>
+            <span>{{ t("iss.posicion.actualizado") }}</span>
             <span class="stat-val">{{ updatedAt ?? '--:--:--' }}</span>
           </div>
 
-          <p v-if="error" class="iss-error">⚠️ Sin conexión al servicio</p>
+          <p v-if="error" class="iss-error">⚠️ {{ t("iss.posicion.sinConexion") }}</p>
         </div>
 
         <!-- Formulario de alertas -->
         <form class="card" @submit.prevent="handleAlertSubmit">
-          <h3 class="iss-card-title">🔔 Alertas de paso</h3>
-          <label for="iss-city" class="field-label">Latitud, Longitud</label>
+          <h3 class="iss-card-title">{{ t("iss.alertas.title") }}</h3>
+          <label for="iss-city" class="field-label">{{ t("iss.alertas.label") }}</label>
           <input
             id="iss-city"
             v-model="coordInput"
             type="text"
             class="input"
-            placeholder="Ej: 19.4326, -99.1332"
+            :placeholder="t('iss.alertas.placeholder')"
             :disabled="loadingPasses"
           />
           <button type="submit" class="btn iss-alert-btn" :disabled="loadingPasses">
-            <span v-if="loadingPasses">Calculando...</span>
-            <span v-else>Avisarme cuando pase la ISS</span>
+            <span v-if="loadingPasses">{{ t("iss.alertas.btnCalculando") }}</span>
+            <span v-else>{{ t("iss.alertas.btn") }}</span>
           </button>
-          <p class="iss-alert-hint">→ hora de paso, duración y elevación máx.</p>
+          <p class="iss-alert-hint">{{ t("iss.alertas.hint") }}</p>
 
           <!-- Error de alertas -->
           <p v-if="alertError" class="iss-error">⚠️ {{ alertError }}</p>
@@ -56,12 +53,12 @@
           <ul v-if="passes.length" class="iss-passes">
             <li v-for="(pass, i) in passes" :key="i" class="iss-pass-item">
               <div class="pass-row">
-                <span class="pass-label">Paso {{ i + 1 }}</span>
+                <span class="pass-label">{{ t("iss.alertas.paso") }} {{ i + 1 }}</span>
                 <span class="pass-time">{{ formatTime(pass.inicio_utc) }}</span>
               </div>
               <div class="pass-meta">
                 <span>⏱ {{ pass.duracion_s }}s</span>
-                <span>📐 Elev. máx. {{ pass.elevacion_max_grados }}°</span>
+                <span>📐 {{ t("iss.alertas.elevMax") }} {{ pass.elevacion_max_grados }}°</span>
               </div>
             </li>
           </ul>
@@ -73,9 +70,12 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { useI18n } from 'vue-i18n'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { getIssLocation, getIssPasses } from '../../services/issService.js'
+
+const { t, locale } = useI18n()
 
 // ── Posición ISS ────────────────────────────────────────────────
 const latitude     = ref(null)
@@ -102,12 +102,14 @@ const issIcon = L.divIcon({
 })
 
 // ── Helpers ─────────────────────────────────────────────────────
+const localeFecha = () => (locale.value === 'en' ? 'en-US' : 'es-MX')
+
 function formatTime(risetime) {
   // risetime puede venir como timestamp Unix (número) o string ISO
   const date = typeof risetime === 'number'
     ? new Date(risetime * 1000)
     : new Date(risetime)
-  return isNaN(date) ? risetime : date.toLocaleString('es-MX')
+  return isNaN(date) ? risetime : date.toLocaleString(localeFecha())
 }
 
 function parseCoords(input) {
@@ -124,7 +126,7 @@ async function fetchPosition() {
     const data = await getIssLocation()
     latitude.value  = data.latitude.toFixed(4)
     longitude.value = data.longitude.toFixed(4)
-    updatedAt.value = new Date(data.timestamp).toLocaleTimeString()
+    updatedAt.value = new Date(data.timestamp).toLocaleTimeString(localeFecha())
     error.value     = false
 
     if (marker) {
@@ -143,7 +145,7 @@ async function handleAlertSubmit() {
 
   const coords = parseCoords(coordInput.value)
   if (!coords) {
-    alertError.value = 'Ingresa coordenadas válidas: latitud, longitud (Ej: 19.43, -99.13)'
+    alertError.value = t('iss.alertas.errorCoords')
     return
   }
 
@@ -152,10 +154,10 @@ async function handleAlertSubmit() {
     const result = await getIssPasses(coords.lat, coords.lon)
     passes.value = Array.isArray(result) ? result : []
     if (!passes.value.length) {
-      alertError.value = 'No se encontraron próximos pasos para esa ubicación.'
+      alertError.value = t('iss.alertas.errorSinPasos')
     }
   } catch (e) {
-    alertError.value = 'No se pudo conectar al servicio de alertas. Intenta más tarde.'
+    alertError.value = t('iss.alertas.errorServicio')
   } finally {
     loadingPasses.value = false
   }

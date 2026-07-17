@@ -1,28 +1,25 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { useAuth } from "../../composables/useAuth.js";
 
+const { t, locale } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const auth = useAuth();
 
-const links = [
-  { href: "#apod", label: "Foto del Día" },
-  { href: "#iss", label: "ISS" },
-  { href: "#marte", label: "Marte" },
-  { href: "#asteroides", label: "Asteroides" },
-  { href: "#reportes", label: "Mis Reportes" },
-];
+const links = computed(() => [
+  { href: "#apod", label: t("nav.links.apod") },
+  { href: "#iss", label: t("nav.links.iss") },
+  { href: "#marte", label: t("nav.links.marte") },
+  { href: "#asteroides", label: t("nav.links.asteroides") },
+  { href: "#reportes", label: t("nav.links.reportes") },
+]);
 
 const menuOpen = ref(false);
 const activeId = ref("apod");
-const lang = ref("ES");
 
-// ── Lógica según ruta activa ──────────────────────────────────────
-// /dashboard      -> links de secciones + botón de sesión
-// /  (home)       -> solo logo + "Iniciar sesión" + "Ver dashboard"
-// /login /register -> solo logo, sin links ni botones de sesión
 const isDashboard = computed(() => route.path === "/dashboard");
 const isHome = computed(() => route.path === "/");
 const isAuthPage = computed(
@@ -37,8 +34,10 @@ function closeMenu() {
   menuOpen.value = false;
 }
 
+// Conectar el toggle al locale de i18n y persistir en localStorage
 function toggleLang() {
-  lang.value = lang.value === "ES" ? "EN" : "ES";
+  locale.value = locale.value === "es" ? "en" : "es";
+  localStorage.setItem("spacemex-locale", locale.value);
 }
 
 function irALogin() {
@@ -57,7 +56,6 @@ function cerrarSesion() {
   router.push("/");
 }
 
-// Resalta el link de la sección visible mientras se hace scroll.
 let observer = null;
 
 onMounted(() => {
@@ -92,32 +90,35 @@ onBeforeUnmount(() => observer?.disconnect());
       </li>
     </ul>
 
-    <!-- Acciones derecha -->
-    <button v-if="!isAuthPage" class="navbar__lang" @click="toggleLang">{{ lang }} / {{ lang === "ES" ? "EN" : "ES" }}</button>
+    <!-- Toggle de idioma -->
+    <button v-if="!isAuthPage" class="navbar__lang" @click="toggleLang">
+      {{ locale === "es" ? "ES / EN" : "EN / ES" }}
+    </button>
 
-    <!-- Home: "Iniciar sesión" (siempre visible) + "Ver dashboard" (oculto en móvil, redundante con el hero) -->
+    <!-- Home -->
     <template v-if="isHome">
       <button v-if="!auth.isLoggedIn.value" class="navbar__login" @click="irALogin">
-        Iniciar sesión
+        {{ t("nav.login") }}
       </button>
       <button class="navbar__dashboard-btn" @click="irADashboard">
-        Ver dashboard
+        {{ t("nav.dashboard") }}
       </button>
     </template>
 
     <!-- Dashboard: estado de sesión -->
     <template v-else-if="isDashboard">
       <button v-if="!auth.isLoggedIn.value" class="navbar__login navbar__login--bar" @click="irALogin">
-        Iniciar sesión
+        {{ t("nav.login") }}
       </button>
       <div v-else class="navbar__user">
         <span class="navbar__user-name">{{ auth.user.value?.name }}</span>
         <button class="navbar__login navbar__login--bar" @click="cerrarSesion">
-          Cerrar sesión
+          {{ t("nav.logout") }}
         </button>
       </div>
     </template>
-    <!-- Botón hamburguesa — móvil, solo si hay algo que mostrar en el drawer -->
+
+    <!-- Botón hamburguesa -->
     <button
       v-if="isDashboard"
       class="navbar__hamburger"
@@ -131,7 +132,7 @@ onBeforeUnmount(() => observer?.disconnect());
       <span class="bar" />
     </button>
 
-    <!-- Menú desplegable — móvil, solo en /dashboard -->
+    <!-- Menú desplegable móvil -->
     <ul
       v-if="isDashboard"
       class="navbar__drawer"
@@ -147,10 +148,10 @@ onBeforeUnmount(() => observer?.disconnect());
       </li>
       <li>
         <button v-if="!auth.isLoggedIn.value" class="navbar__login navbar__login--drawer" @click="irALogin">
-          Iniciar sesión
+          {{ t("nav.login") }}
         </button>
         <button v-else class="navbar__login navbar__login--drawer" @click="cerrarSesion">
-          Cerrar sesión ({{ auth.user.value?.name }})
+          {{ t("nav.logout") }} ({{ auth.user.value?.name }})
         </button>
       </li>
     </ul>
@@ -198,7 +199,6 @@ onBeforeUnmount(() => observer?.disconnect());
   font-size: 0.95rem;
 }
 
-/* ── Links escritorio ──────────────────────────────────────────── */
 .navbar__links {
   display: flex;
   gap: 4px;
@@ -222,7 +222,6 @@ onBeforeUnmount(() => observer?.disconnect());
   text-decoration: none;
 }
 
-/* ── Idioma ────────────────────────────────────────────────────── */
 .navbar__lang {
   border: 1px solid var(--color-border);
   border-radius: 8px;
@@ -240,7 +239,6 @@ onBeforeUnmount(() => observer?.disconnect());
   border-color: var(--color-accent);
 }
 
-/* ── Login ─────────────────────────────────────────────────────── */
 .navbar__login {
   background-color: var(--color-primary);
   color: #fff;
@@ -262,7 +260,6 @@ onBeforeUnmount(() => observer?.disconnect());
   width: 100%;
 }
 
-/* ── Botón "Ver dashboard" (solo en home) ─────────────────────── */
 .navbar__dashboard-btn {
   background-color: transparent;
   border: 1px solid var(--color-accent);
@@ -280,7 +277,6 @@ onBeforeUnmount(() => observer?.disconnect());
   background-color: var(--color-bg-elevated);
 }
 
-/* ── Usuario logueado ─────────────────────────────────────────── */
 .navbar__user {
   display: flex;
   align-items: center;
@@ -293,7 +289,6 @@ onBeforeUnmount(() => observer?.disconnect());
   white-space: nowrap;
 }
 
-/* ── Hamburguesa ───────────────────────────────────────────────── */
 .navbar__hamburger {
   display: none;
   flex-direction: column;
@@ -328,7 +323,6 @@ onBeforeUnmount(() => observer?.disconnect());
   transform: translateY(-7px) rotate(-45deg);
 }
 
-/* ── Drawer móvil ──────────────────────────────────────────────── */
 .navbar__drawer {
   display: none;
   position: absolute;
@@ -341,7 +335,6 @@ onBeforeUnmount(() => observer?.disconnect());
   border-bottom: 1px solid var(--color-border);
   padding: 1rem 2rem;
   gap: 0.5rem;
-
   opacity: 0;
   transform: translateY(-8px);
   transition: opacity 0.25s, transform 0.25s;
@@ -354,7 +347,6 @@ onBeforeUnmount(() => observer?.disconnect());
   pointer-events: auto;
 }
 
-/* ── Breakpoint móvil ──────────────────────────────────────────── */
 @media (max-width: 820px) {
   .navbar {
     padding: 0 16px;

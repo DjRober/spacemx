@@ -1,48 +1,44 @@
 <template>
   <section id="reportes" class="section reportes-section">
-    <h2 class="section__title">Mis Reportes Espaciales</h2>
-    <p class="section__subtitle">
-      Formulario para una nueva observación y lista de reportes con CRUD
-      completo.
-    </p>
+    <h2 class="section__title">{{ t("reportes.title") }}</h2>
+    <p class="section__subtitle">{{ t("reportes.subtitle") }}</p>
 
     <!-- Sin sesión: aviso de candado -->
     <div v-if="!auth.isLoggedIn.value" class="auth-note">
-      🔒 Esta sección requiere iniciar sesión — endpoints autenticados de la API
-      SpaceMex.
+      {{ t("reportes.authNote") }}
     </div>
 
     <div class="rep-grid">
       <!-- Formulario nueva observación -->
       <form class="card form-card" @submit.prevent="guardarReporte">
-        <h3 class="form-title">Nueva observación</h3>
+        <h3 class="form-title">{{ t("reportes.form.title") }}</h3>
 
         <div class="field">
-          <label class="field-label" for="rep-titulo">Título</label>
+          <label class="field-label" for="rep-titulo">{{ t("reportes.form.labelTitulo") }}</label>
           <input
             id="rep-titulo"
             v-model="form.titulo"
             type="text"
             class="input"
-            placeholder="Ej. Aurora boreal en Chihuahua"
+            :placeholder="t('reportes.form.placeholderTitulo')"
             :disabled="!auth.isLoggedIn.value"
           />
         </div>
 
         <div class="field">
-          <label class="field-label" for="rep-desc">Descripción</label>
+          <label class="field-label" for="rep-desc">{{ t("reportes.form.labelDesc") }}</label>
           <textarea
             id="rep-desc"
             v-model="form.descripcion"
             class="input field-textarea"
-            placeholder="Describe lo que observaste..."
+            :placeholder="t('reportes.form.placeholderDesc')"
             :disabled="!auth.isLoggedIn.value"
           ></textarea>
         </div>
 
         <div class="field-row">
           <div class="field">
-            <label class="field-label" for="rep-fecha">Fecha</label>
+            <label class="field-label" for="rep-fecha">{{ t("reportes.form.labelFecha") }}</label>
             <input
               id="rep-fecha"
               v-model="form.fecha_observacion"
@@ -52,34 +48,34 @@
             />
           </div>
           <div class="field">
-            <label class="field-label" for="rep-lat">Latitud</label>
+            <label class="field-label" for="rep-lat">{{ t("reportes.form.labelLat") }}</label>
             <input
               id="rep-lat"
               v-model="form.latitud"
               type="number"
               step="any"
               class="input"
-              placeholder="Ej. 31.7"
+              :placeholder="t('reportes.form.placeholderLat')"
               :disabled="!auth.isLoggedIn.value"
             />
           </div>
         </div>
 
         <div class="field">
-          <label class="field-label" for="rep-lon">Longitud</label>
+          <label class="field-label" for="rep-lon">{{ t("reportes.form.labelLon") }}</label>
           <input
             id="rep-lon"
             v-model="form.longitud"
             type="number"
             step="any"
             class="input"
-            placeholder="Ej. -106.4"
+            :placeholder="t('reportes.form.placeholderLon')"
             :disabled="!auth.isLoggedIn.value"
           />
         </div>
 
         <div class="field">
-          <span class="field-label">Visibilidad</span>
+          <span class="field-label">{{ t("reportes.form.labelVisibilidad") }}</span>
           <div class="radio-group">
             <label class="radio-label">
               <input
@@ -90,7 +86,7 @@
                 class="radio"
                 :disabled="!auth.isLoggedIn.value"
               />
-              🔒 Privada
+              {{ t("reportes.form.privada") }}
             </label>
             <label class="radio-label">
               <input
@@ -101,7 +97,7 @@
                 class="radio"
                 :disabled="!auth.isLoggedIn.value"
               />
-              🌐 Pública
+              {{ t("reportes.form.publica") }}
             </label>
           </div>
         </div>
@@ -109,7 +105,7 @@
         <p v-if="errorForm" class="error-msg">{{ errorForm }}</p>
 
         <button class="btn submit-btn" :disabled="!auth.isLoggedIn.value || guardando">
-          {{ guardando ? "Guardando..." : modoEdicion ? "Actualizar reporte" : "Guardar reporte" }}
+          {{ guardando ? t("reportes.form.btnGuardando") : modoEdicion ? t("reportes.form.btnActualizar") : t("reportes.form.btnGuardar") }}
         </button>
 
         <button
@@ -118,19 +114,19 @@
           class="btn cancel-btn"
           @click="cancelarEdicion"
         >
-          Cancelar
+          {{ t("reportes.form.btnCancelar") }}
         </button>
 
         <p v-if="!auth.isLoggedIn.value" class="submit-helper">
-          Inicia sesión para guardar observaciones.
+          {{ t("reportes.form.helperLogin") }}
         </p>
       </form>
 
       <!-- Lista de reportes -->
       <div class="reports-list">
-        <p v-if="cargando" class="loading-msg">Cargando reportes...</p>
+        <p v-if="cargando" class="loading-msg">{{ t("reportes.lista.cargando") }}</p>
         <p v-else-if="auth.isLoggedIn.value && reportes.length === 0" class="empty-msg">
-          Aún no tienes observaciones. ¡Crea tu primera!
+          {{ t("reportes.lista.vacio") }}
         </p>
 
         <div v-for="reporte in reportes" :key="reporte.id" class="card rep-card">
@@ -143,13 +139,13 @@
               {{ formatearFecha(reporte.fecha_observacion) }} ·
               {{ reporte.latitud }}°, {{ reporte.longitud }}°
               <span :class="reporte.es_publico ? 'badge public' : 'badge private'">
-                {{ reporte.es_publico ? "🌐 pública" : "🔒 privada" }}
+                {{ reporte.es_publico ? t("reportes.lista.badgePublica") : t("reportes.lista.badgePrivada") }}
               </span>
             </p>
           </div>
           <div class="rep-actions">
-            <button class="icon-btn" title="Editar" @click="editarReporte(reporte)">✏️</button>
-            <button class="icon-btn" title="Eliminar" @click="eliminarReporte(reporte.id)">🗑️</button>
+            <button class="icon-btn" :title="t('reportes.lista.titleEditar')" @click="editarReporte(reporte)">✏️</button>
+            <button class="icon-btn" :title="t('reportes.lista.titleEliminar')" @click="eliminarReporte(reporte.id)">🗑️</button>
           </div>
         </div>
       </div>
@@ -160,12 +156,13 @@
 <script setup>
 // RF6 — Mis Reportes Espaciales
 import { ref, onMounted, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { useAuth } from "../../composables/useAuth.js";
 import { reportsService } from "../../services/reportsService.js";
 
+const { t, locale } = useI18n();
 const auth = useAuth();
 
-// ── Estado ────────────────────────────────────────────────────────
 const reportes = ref([]);
 const cargando = ref(false);
 const guardando = ref(false);
@@ -184,7 +181,7 @@ const form = ref({
 
 function formatearFecha(fecha) {
   if (!fecha) return "";
-  return new Date(fecha).toLocaleDateString("es-MX", {
+  return new Date(fecha).toLocaleDateString(locale.value === "en" ? "en-US" : "es-MX", {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -206,7 +203,6 @@ function limpiarForm() {
   idEditando.value = null;
 }
 
-// ── Cargar reportes ───────────────────────────────────────────────
 async function cargarReportes() {
   if (!auth.isLoggedIn.value || !auth.user.value?.token) return;
   cargando.value = true;
@@ -219,22 +215,19 @@ async function cargarReportes() {
   }
 }
 
-// Cargar al montar si ya hay sesión
 onMounted(cargarReportes);
 
-// Cargar cuando el usuario inicia sesión
 watch(() => auth.isLoggedIn.value, (loggedIn) => {
   if (loggedIn) cargarReportes();
   else reportes.value = [];
 });
 
-// ── Guardar reporte (crear o actualizar) ──────────────────────────
 async function guardarReporte() {
   errorForm.value = "";
   const { titulo, descripcion, fecha_observacion, latitud, longitud, es_publico } = form.value;
 
   if (!titulo || !descripcion || !fecha_observacion || latitud === "" || longitud === "") {
-    errorForm.value = "Todos los campos son requeridos.";
+    errorForm.value = t("reportes.form.errorRequeridos");
     return;
   }
 
@@ -258,13 +251,12 @@ async function guardarReporte() {
     limpiarForm();
     await cargarReportes();
   } catch (err) {
-    errorForm.value = err.message || "Error al guardar el reporte.";
+    errorForm.value = err.message || t("reportes.form.errorGuardar");
   } finally {
     guardando.value = false;
   }
 }
 
-// ── Editar reporte ────────────────────────────────────────────────
 function editarReporte(reporte) {
   modoEdicion.value = true;
   idEditando.value = reporte.id;
@@ -282,14 +274,13 @@ function cancelarEdicion() {
   limpiarForm();
 }
 
-// ── Eliminar reporte ──────────────────────────────────────────────
 async function eliminarReporte(id) {
-  if (!confirm("¿Seguro que quieres eliminar esta observación?")) return;
+  if (!confirm(t("reportes.lista.confirmEliminar"))) return;
   try {
     await reportsService.eliminar(auth.user.value.token, id);
     await cargarReportes();
   } catch (err) {
-    alert(err.message || "Error al eliminar el reporte.");
+    alert(err.message || t("reportes.lista.errorEliminar"));
   }
 }
 </script>
@@ -311,7 +302,6 @@ async function eliminarReporte(id) {
   gap: 24px;
 }
 
-/* ── Formulario ───────────────────────────────── */
 .form-card {
   display: flex;
   flex-direction: column;
@@ -396,7 +386,6 @@ async function eliminarReporte(id) {
   padding: 2rem 0;
 }
 
-/* ── Lista de reportes ────────────────────────── */
 .reports-list {
   display: flex;
   flex-direction: column;
@@ -476,7 +465,6 @@ async function eliminarReporte(id) {
   background-color: var(--color-bg-nav);
 }
 
-/* ── Responsive ───────────────────────────────── */
 @media (max-width: 820px) {
   .rep-grid,
   .field-row {

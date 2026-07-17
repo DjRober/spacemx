@@ -6,25 +6,25 @@
       <div class="login-brand">
         <span class="login-brand-icon">🚀</span>
         <h1 class="login-brand-name">SpaceMex</h1>
-        <p class="login-brand-sub">NASA Space Dashboard</p>
+        <p class="login-brand-sub">{{ t("auth.brandSub") }}</p>
       </div>
 
       <!-- Formulario -->
       <div class="login-form">
         <div class="login-field">
-          <label for="email" class="field-label">Correo electrónico</label>
+          <label for="email" class="field-label">{{ t("auth.login.email") }}</label>
           <input
             id="email"
             v-model="email"
             type="email"
             class="input"
-            placeholder="tucorreo@ejemplo.com"
+            :placeholder="t('auth.login.emailPlaceholder')"
             autocomplete="email"
           />
         </div>
 
         <div class="login-field">
-          <label for="password" class="field-label">Contraseña</label>
+          <label for="password" class="field-label">{{ t("auth.login.password") }}</label>
           <input
             id="password"
             v-model="password"
@@ -39,14 +39,14 @@
         <p v-if="errorMsg" class="error-msg text-danger">{{ errorMsg }}</p>
 
         <button class="btn login-btn" @click="handleLogin" :disabled="cargando">
-          {{ cargando ? 'Iniciando…' : 'Iniciar sesión' }}
+          {{ cargando ? t("auth.login.btnCargando") : t("auth.login.btn") }}
         </button>
       </div>
 
       <!-- Link a registro -->
       <p class="login-register-link">
-        ¿No tienes cuenta?
-        <router-link to="/register">Regístrate</router-link>
+        {{ t("auth.login.noAccount") }}
+        <router-link to="/register">{{ t("auth.login.register") }}</router-link>
       </p>
 
     </div>
@@ -56,8 +56,10 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAuth } from '../composables/useAuth.js'
 
+const { t } = useI18n()
 const auth = useAuth()
 const router = useRouter()
 
@@ -70,7 +72,7 @@ async function handleLogin() {
   errorMsg.value = ''
 
   if (!email.value || !password.value) {
-    errorMsg.value = 'Ingresa tu correo y contraseña.'
+    errorMsg.value = t('auth.login.errorCampos')
     return
   }
 
@@ -80,10 +82,10 @@ async function handleLogin() {
     router.push('/dashboard')
   } catch (e) {
     errorMsg.value = e.message?.includes('fetch')
-      ? 'No se pudo conectar con el servidor.'
+      ? t('auth.login.errorConexion')
       : e.message === 'Credenciales inválidas'
-      ? 'Correo o contraseña incorrectos.'
-      : e.message || 'No se pudo iniciar sesión.'
+      ? t('auth.login.errorCredenciales')
+      : e.message || t('auth.login.errorGenerico')
   } finally {
     cargando.value = false
   }

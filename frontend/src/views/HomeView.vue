@@ -1,34 +1,16 @@
 <script setup>
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 
 const router = useRouter();
+const { t } = useI18n();
 
-// Las 4 funciones principales de SpaceMex.
-const features = [
-  {
-    icon: "🌌",
-    accent: "var(--color-star)",
-    title: "Foto del Día",
-    desc: "La imagen astronómica diaria de la NASA, con su descripción científica y un buscador histórico.",
-  },
-  {
-    icon: "🛰️",
-    accent: "var(--color-success)",
-    title: "ISS en vivo",
-    desc: "Sigue la Estación Espacial Internacional en tiempo real: posición, velocidad y próximos pasos sobre ti.",
-  },
-  {
-    icon: "🔴",
-    accent: "var(--color-warning)",
-    title: "Clima en Marte",
-    desc: "Temperatura, presión y vientos del último sol marciano medidos por las sondas en el planeta rojo.",
-  },
-  {
-    icon: "☄️",
-    accent: "var(--color-danger)",
-    title: "Asteroides",
-    desc: "Objetos cercanos a la Tierra de los próximos días, con distancia, tamaño y nivel de peligrosidad.",
-  },
+// Las 4 funciones principales — las claves apuntan al diccionario i18n
+const featureKeys = [
+  { key: "apod", icon: "🌌", accent: "var(--color-star)" },
+  { key: "iss", icon: "🛰️", accent: "var(--color-success)" },
+  { key: "marte", icon: "🔴", accent: "var(--color-warning)" },
+  { key: "asteroides", icon: "☄️", accent: "var(--color-danger)" },
 ];
 
 function goToDashboard() {
@@ -46,24 +28,18 @@ function goToRegister() {
     <div class="hero__glow" aria-hidden="true"></div>
 
     <div class="hero__inner">
-      <span class="hero__eyebrow"
-        >🚀 SpaceMex · Datos espaciales en tiempo real</span
-      >
+      <span class="hero__eyebrow">{{ t("home.eyebrow") }}</span>
 
-      <h1 class="hero__title">Explora el universo<br />desde tu navegador</h1>
+      <h1 class="hero__title" v-html="t('home.title').replace('\n', '<br />')"></h1>
 
-      <p class="hero__subtitle">
-        Un solo lugar para seguir la Estación Espacial Internacional, el clima
-        en Marte, los asteroides cercanos y la foto astronómica del día. Datos
-        de la NASA, presentados de forma clara.
-      </p>
+      <p class="hero__subtitle">{{ t("home.subtitle") }}</p>
 
       <div class="hero__actions">
         <button class="btn hero__btn" @click="goToDashboard">
-          Ver dashboard
+          {{ t("home.btnDashboard") }}
         </button>
         <button class="btn btn--ghost hero__btn" @click="goToRegister">
-          Crear cuenta
+          {{ t("home.btnRegister") }}
         </button>
       </div>
     </div>
@@ -71,18 +47,14 @@ function goToRegister() {
 
   <!-- ── Características ───────────────────────────────────────── -->
   <section class="section features">
-    <h2 class="section__title">¿Qué puedes hacer en SpaceMex?</h2>
-    <p class="section__subtitle">
-      Cuatro ventanas al cosmos, actualizadas a diario.
-    </p>
+    <h2 class="section__title">{{ t("home.featuresTitle") }}</h2>
+    <p class="section__subtitle">{{ t("home.featuresSubtitle") }}</p>
 
     <div class="features__grid">
-      <article v-for="f in features" :key="f.title" class="card feature">
-        <span class="feature__icon" :style="{ '--feature-accent': f.accent }">{{
-          f.icon
-        }}</span>
-        <h3 class="feature__title">{{ f.title }}</h3>
-        <p class="feature__desc">{{ f.desc }}</p>
+      <article v-for="f in featureKeys" :key="f.key" class="card feature">
+        <span class="feature__icon" :style="{ '--feature-accent': f.accent }">{{ f.icon }}</span>
+        <h3 class="feature__title">{{ t(`home.features.${f.key}.title`) }}</h3>
+        <p class="feature__desc">{{ t(`home.features.${f.key}.desc`) }}</p>
       </article>
     </div>
   </section>
@@ -96,7 +68,6 @@ function goToRegister() {
   border-bottom: 1px dashed var(--color-border);
 }
 
-/* Resplandor nebuloso detrás del título */
 .hero__glow {
   position: absolute;
   top: -160px;
@@ -175,9 +146,7 @@ function goToRegister() {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
-  transition:
-    transform 0.2s,
-    border-color 0.2s;
+  transition: transform 0.2s, border-color 0.2s;
 }
 
 .feature:hover {

@@ -1,10 +1,7 @@
 <template>
   <section id="apod" class="section apod-section">
-    <h2 class="section__title">Foto Astronómica del Día</h2>
-    <p class="section__subtitle">
-      Lo primero que ve el usuario: la imagen protagonista del universo, su
-      descripción científica y un buscador histórico.
-    </p>
+    <h2 class="section__title">{{ t("apod.title") }}</h2>
+    <p class="section__subtitle">{{ t("apod.subtitle") }}</p>
 
     <!-- Error de carga inicial (todavía no hay ninguna foto que mostrar). -->
     <p v-if="error && !apod" class="apod-error">{{ error }}</p>
@@ -68,7 +65,7 @@
         <div class="apod-search">
           <div class="apod-search-field">
             <label for="apod-date" class="field-label">
-              Buscador histórico — ver foto de otra fecha
+              {{ t("apod.searchLabel") }}
             </label>
             <input
               id="apod-date"
@@ -80,7 +77,7 @@
             />
           </div>
           <button class="btn" @click="buscar" :disabled="cargando">
-            {{ cargando ? "Buscando" : "Buscar" }}
+            {{ cargando ? t("apod.btnBuscando") : t("apod.btnBuscar") }}
           </button>
         </div>
 
@@ -94,8 +91,10 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import { getApod } from "../../services/Apodservice";
 
+const { t } = useI18n();
 const apod = ref(null); // datos de la foto (null mientras carga)
 const selectedDate = ref(""); // fecha que escribe el usuario en el input
 const cargando = ref(false); // true mientras espera al servicio
@@ -115,7 +114,7 @@ async function cargarApod(date = null) {
     // Un AbortError no es un fallo real: significa que el usuario lanzó otra
     // búsqueda y cancelamos ésta. Lo ignoramos para no mostrar error en pantalla.
     if (e.name === "AbortError") return;
-    error.value = "No se pudo cargar la foto";
+    error.value = t("apod.error");
     // Si ya había una foto mostrándose, la conservamos: restauramos su estado
     // "cargada" para que vuelva a verse (la habíamos ocultado al iniciar).
     if (apod.value) imageLoaded.value = true;
