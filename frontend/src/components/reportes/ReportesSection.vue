@@ -182,13 +182,13 @@ const form = ref({
   es_publico: false,
 });
 
-// ── Helpers ───────────────────────────────────────────────────────
 function formatearFecha(fecha) {
   if (!fecha) return "";
   return new Date(fecha).toLocaleDateString("es-MX", {
     year: "numeric",
     month: "short",
     day: "numeric",
+    timeZone: "UTC",
   });
 }
 
