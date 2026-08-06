@@ -1,9 +1,9 @@
 // services/reportsService.js
 // RF6 — Mis Reportes Espaciales
-// Conectado al reports-service (http://localhost:3006/reportes).
+// Conectado al reports-service a través del reverse proxy (/api).
 // Manda el header Authorization: Bearer <token> en cada petición.
 
-const SERVICIO_URL = "http://localhost:3006/reportes";
+const SERVICIO_URL = "/api/reportes";
 
 function headers(token) {
   return {
