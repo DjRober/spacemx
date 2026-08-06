@@ -1,0 +1,13 @@
+# Configuración de Caddy — TLS automático (Let's Encrypt).
+# El dominio se toma de la variable DOMAIN del .env (ej. spacemex.duckdns.org).
+#
+# Caddy obtiene y RENUEVA solo el certificado HTTPS: no hay que hacer nada más.
+# Solo reenvía todo al frontend (nginx), que sirve el SPA y rutea /api/* a los
+# servicios. Cadena: navegador → Caddy (443, TLS) → frontend:80 → /api → backends.
+#
+# Con DOMAIN=localhost, Caddy usa un certificado interno autofirmado (útil para
+# probar en local); con un dominio real, usa Let's Encrypt automáticamente.
+
+{$DOMAIN} {
+	reverse_proxy frontend:80
+}

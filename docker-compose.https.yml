@@ -1,0 +1,42 @@
+# Override de HTTPS con dominio propio (Caddy + Let's Encrypt).
+#
+# Se apila SOBRE el override de producción:
+#   docker compose -f docker-compose.yml \
+#                  -f docker-compose.prod.yml \
+#                  -f docker-compose.https.yml up --build -d
+#
+# Requisitos:
+#   - Un dominio (o subdominio, ej. DuckDNS) apuntando al IP público de la VM.
+#   - DOMAIN definido en el .env (ej. DOMAIN=spacemex.duckdns.org).
+#   - Puertos 80 y 443 abiertos en el firewall de la VM.
+#
+# Añade Caddy al frente: termina el TLS y reenvía al frontend por la red interna.
+# El frontend deja de publicar su puerto (solo Caddy queda expuesto).
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: spacemex-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"      # Let's Encrypt valida por aquí; tambien redirige a HTTPS
+      - "443:443"
+    environment:
+      # Falla con un mensaje claro si olvidas definir DOMAIN en el .env.
+      DOMAIN: ${DOMAIN:?Define DOMAIN en el .env (ej. spacemex.duckdns.org)}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Persistir los certificados: sin esto, cada reinicio los vuelve a pedir
+      # y Let's Encrypt tiene límites (te podría bloquear temporalmente).
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - frontend
+
+  # El frontend ya no se publica al host: Caddy le habla por la red interna.
+  frontend:
+    ports: !reset []
+
+volumes:
+  caddy-data:
+  caddy-config:

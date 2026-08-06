@@ -174,11 +174,47 @@ quedaría expuesto con `postgres/postgres` — un riesgo real en una máquina p�
 | `docker compose up` (local) | frontend + los 7 servicios + Postgres (cómodo para depurar) |
 | `... -f docker-compose.prod.yml up` (VM) | **solo el frontend** |
 
+### Con dominio propio + HTTPS (candado) 🔒
+
+Para que el link sea `https://spacemex.tudominio.com` (con candado) en vez de una IP,
+se añade **[Caddy](https://caddyserver.com/)**, que saca y renueva el certificado de
+Let's Encrypt **automáticamente**. Ya está todo listo en el repo.
+
+**Paso 1 — un subdominio gratis con [DuckDNS](https://www.duckdns.org/):**
+1. Entra a duckdns.org e inicia sesión (con Google/GitHub).
+2. Crea un subdominio, ej. `spacemex` → te dan `spacemex.duckdns.org`.
+3. En el campo **current ip**, pon el **IP público de tu VM** y guarda.
+
+> Con un dominio propio (Namecheap, etc.) es igual: crea un registro **A** que apunte
+> `spacemex.tudominio.com` → IP de la VM.
+
+**Paso 2 — abre los puertos 80 y 443** en el firewall / grupo de seguridad de la VM.
+
+**Paso 3 — en el `.env` de la VM**, define el dominio (y quita `FRONTEND_PORT`, ya no
+publica puerto porque Caddy va al frente):
+
+```env
+DOMAIN=spacemex.duckdns.org
+```
+
+**Paso 4 — levanta apilando el override de HTTPS:**
+
+```bash
+docker compose -f docker-compose.yml \
+               -f docker-compose.prod.yml \
+               -f docker-compose.https.yml up --build -d
+```
+
+Abre **https://spacemex.duckdns.org** — con candado, y el certificado se renueva solo.
+Caddy además redirige `http://` → `https://` automáticamente.
+
+> **Cómo funciona:** Caddy escucha en 80/443, termina el TLS y reenvía al frontend por
+> la red interna. La cadena es `navegador → Caddy (HTTPS) → nginx → /api → servicios`.
+> Los certificados se guardan en un volumen (`caddy-data`) para no volver a pedirlos en
+> cada reinicio (Let's Encrypt tiene límites de emisión).
+
 ### Notas
 
-- **HTTPS (candado):** queda en `http://`. Para `https://` con dominio propio, lo más
-  fácil es poner [Caddy](https://caddyserver.com/) o Cloudflare delante — se puede
-  añadir después sin tocar lo demás.
 - **¿Solo un link rápido y temporal?** Si no quieres crear una VM, un túnel
   (`cloudflared tunnel --url http://localhost:8080`) expone tu Docker local con una
   URL pública mientras tu máquina esté encendida. Sirve para enseñar algo al momento,
