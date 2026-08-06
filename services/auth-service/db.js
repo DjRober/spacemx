@@ -9,6 +9,9 @@ const { Pool } = pg;
 
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  // Postgres gestionado (Neon, etc.) exige TLS. Con DATABASE_SSL=true lo
+  // activamos; en local (Docker Compose) la variable no se pone y va sin SSL.
+  ssl: process.env.DATABASE_SSL === "true" ? { rejectUnauthorized: false } : false,
 });
 
 // Sin esto, un error en un cliente ocioso (ej. la BD se reinicia) tumba el proceso.

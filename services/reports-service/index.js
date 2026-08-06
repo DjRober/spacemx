@@ -18,7 +18,12 @@ if (!JWT_SECRET) {
 }
 
 const { Pool } = pg;
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  // Postgres gestionado (Neon, etc.) exige TLS. Con DATABASE_SSL=true lo
+  // activamos; en local (Docker Compose) la variable no se pone y va sin SSL.
+  ssl: process.env.DATABASE_SSL === "true" ? { rejectUnauthorized: false } : false,
+});
 pool.on("error", (err) => console.error("Error inesperado en el pool de PG:", err));
 
 app.use(cors());

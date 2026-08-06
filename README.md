@@ -213,9 +213,41 @@ Caddy además redirige `http://` → `https://` automáticamente.
 > Los certificados se guardan en un volumen (`caddy-data`) para no volver a pedirlos en
 > cada reinicio (Let's Encrypt tiene límites de emisión).
 
+### Alternativa sin servidor propio: Render + Neon (gratis, sin tarjeta) ☁️
+
+Si no puedes crear una VM (validación de tarjeta, etc.), puedes hostear la app en
+**[Render](https://render.com)** con la base de datos en **[Neon](https://neon.tech)**.
+Ambos se registran **con tu cuenta de GitHub, sin tarjeta**, y queda corriendo 24/7
+(en `https://<tu-app>.onrender.com`, con HTTPS incluido).
+
+Como el plan gratis de Render corre **un** contenedor, se usa una imagen "all-in-one"
+([`Dockerfile.render`](Dockerfile.render)) que junta los 7 servicios + nginx; la BD va
+aparte, en Neon.
+
+**Paso 1 — Base de datos en Neon:**
+1. Entra a [neon.tech](https://neon.tech) e inicia sesión con GitHub.
+2. Crea un proyecto (deja la región por defecto).
+3. Copia la **connection string** (algo como
+   `postgresql://user:pass@ep-xxx.neon.tech/neondb?sslmode=require`).
+
+**Paso 2 — App en Render (Blueprint):**
+1. Entra a [render.com](https://render.com) e inicia sesión con GitHub.
+2. **New → Blueprint** y conecta este repo (rama `feat/despliegue-reverse-proxy`).
+   Render lee [`render.yaml`](render.yaml) solo.
+3. Te pedirá dos valores: pega el **`DATABASE_URL`** de Neon y tu **`NASA_API_KEY`**
+   (el `JWT_SECRET` lo genera Render solo).
+4. **Apply / Deploy** y espera unos minutos al primer build.
+
+Abre `https://<tu-app>.onrender.com` — ese es tu link, sin depender de tu laptop.
+
+> **Nota (plan gratis):** la app **se duerme** tras ~15 min sin visitas; el primer
+> acceso después tarda ~40s en despertar y luego va normal. Los datos viven en Neon,
+> así que **no se pierden** cuando se duerme. La base de datos aplica su esquema sola
+> al arrancar (igual que en Docker).
+
 ### Notas
 
-- **¿Solo un link rápido y temporal?** Si no quieres crear una VM, un túnel
+- **¿Solo un link rápido y temporal?** Si no quieres crear ninguna cuenta, un túnel
   (`cloudflared tunnel --url http://localhost:8080`) expone tu Docker local con una
   URL pública mientras tu máquina esté encendida. Sirve para enseñar algo al momento,
   no para la entrega final.

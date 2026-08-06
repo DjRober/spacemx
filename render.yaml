@@ -1,0 +1,31 @@
+# Blueprint de Render — despliega toda la app como UN web service gratis.
+# (El plan gratis corre un contenedor; por eso la imagen all-in-one de
+#  Dockerfile.render junta los 7 servicios + nginx. La base de datos es
+#  externa: Neon, vía DATABASE_URL.)
+#
+# En Render: New → Blueprint → conecta este repo → te pide DATABASE_URL y
+# NASA_API_KEY → Deploy. Ver la sección "Render" del README.
+
+services:
+  - type: web
+    name: spacemex
+    runtime: docker
+    dockerfilePath: ./Dockerfile.render
+    plan: free
+    healthCheckPath: /
+    envVars:
+      # Cadena de conexión de Neon (incluye ?sslmode=require). La pegas tú.
+      - key: DATABASE_URL
+        sync: false
+      # Activa TLS hacia Neon (nuestro código lo lee).
+      - key: DATABASE_SSL
+        value: "true"
+      # Render genera un secreto fuerte y lo comparte entre auth y reports
+      # (mismo proceso, misma variable).
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 24h
+      # Tu llave real de NASA (o DEMO_KEY). La pegas tú.
+      - key: NASA_API_KEY
+        sync: false

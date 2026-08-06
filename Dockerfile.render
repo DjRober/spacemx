@@ -1,0 +1,46 @@
+# Imagen "all-in-one" para Render (plan gratis = 1 contenedor).
+# Empaqueta los 7 microservicios + nginx en una sola imagen. La base de datos
+# es externa (Neon), vía DATABASE_URL. Ver deploy/ y README (sección Render).
+#
+#   Punto de entrada: nginx (sirve el SPA y proxya /api/* a los servicios).
+#   Procesos: supervisord lanza los 7 Node + nginx.
+
+# ── Etapa 1: build del frontend (Vue) ───────────────────────────
+FROM node:22-alpine AS frontend-build
+WORKDIR /app/frontend
+COPY frontend/package*.json ./
+RUN npm ci
+COPY frontend/ ./
+RUN npm run build
+
+# ── Etapa 2: runtime all-in-one ─────────────────────────────────
+FROM node:22-alpine
+
+# nginx (proxy + estáticos), supervisor (procesos) y gettext (envsubst).
+RUN apk add --no-cache nginx supervisor gettext
+
+WORKDIR /app
+
+# Dependencias de producción de cada microservicio.
+COPY services/ /app/services/
+RUN for d in /app/services/*/; do \
+      (cd "$d" && npm ci --omit=dev); \
+    done
+
+# SPA compilado (lo sirve nginx).
+COPY --from=frontend-build /app/frontend/dist /app/public
+
+# Configuración.
+COPY deploy/nginx.render.conf.template /etc/nginx/nginx.render.conf.template
+COPY deploy/supervisord.conf /etc/supervisord.conf
+COPY deploy/entrypoint.sh /entrypoint.sh
+# Normaliza saltos de línea (si se editaron en Windows, el CRLF rompe el
+# shebang del script en Alpine) y hazlo ejecutable.
+RUN sed -i 's/\r$//' /entrypoint.sh /etc/supervisord.conf /etc/nginx/nginx.render.conf.template \
+    && chmod +x /entrypoint.sh
+
+# Render sobreescribe PORT en runtime; 10000 es solo el default local.
+ENV PORT=10000
+EXPOSE 10000
+
+ENTRYPOINT ["/entrypoint.sh"]

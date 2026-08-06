@@ -1,0 +1,18 @@
+# Contexto de build para Dockerfile.render (imagen all-in-one).
+# node_modules del host: se reinstalan dentro de la imagen con npm ci
+# (los del host vienen compilados para Windows y romperian el contenedor).
+**/node_modules
+
+# Builds del frontend: se genera dentro de la imagen (npm run build).
+frontend/dist
+frontend/dist-ssr
+
+# Secretos: la imagen recibe las variables por el panel de Render.
+**/.env
+**/.env.*
+!**/.env.example
+
+# Cosas que no necesita la imagen.
+.git
+**/*.log
+docs
