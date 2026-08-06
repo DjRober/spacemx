@@ -1,8 +1,8 @@
 // services/authService.js
 // RNF3 — Autenticación
-// Conectado al auth-service (http://localhost:3005).
+// Conectado al auth-service a través del reverse proxy (/api → nginx/Vite).
 
-const AUTH_URL = "http://localhost:3005";
+const AUTH_URL = "/api";
 
 async function post(path, body) {
   const res = await fetch(`${AUTH_URL}${path}`, {

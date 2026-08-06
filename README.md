@@ -14,8 +14,13 @@ cd spacemx
 docker compose up --build
 ```
 
-Abre **http://localhost:5173** y listo. No hace falta crear ningún `.env`: todas las
+Abre **http://localhost:8080** y listo. No hace falta crear ningún `.env`: todas las
 variables tienen un valor por defecto y los servicios de NASA caen a `DEMO_KEY`.
+
+El frontend lo sirve **nginx**, que además hace de *reverse proxy*: el navegador
+habla solo con `localhost:8080` y nginx reparte las llamadas `/api/*` al resto de
+servicios. Por eso no hay que configurar ninguna URL. ¿Quieres desplegarlo en
+internet? Ve a [Despliegue](#despliegue-poner-la-página-en-internet).
 
 Para detenerlo: `Ctrl+C`, o `docker compose down` desde otra terminal.
 
@@ -29,19 +34,23 @@ Para detenerlo: `Ctrl+C`, o `docker compose down` desde otra terminal.
 
 ### URLs de cada servicio
 
-Una vez arriba, todo queda publicado en `localhost`:
+El punto de entrada es **http://localhost:8080** (el dashboard). A través del proxy,
+cada servicio queda bajo `/api/`:
 
-| Servicio | URL | Requerimiento |
-|---|---|---|
-| **Frontend** (dashboard) | http://localhost:5173 | — |
-| `apod-service` | http://localhost:3001/apod | RF1, RF7, RF8 |
-| `mars-weather-service` | http://localhost:3002/marte/clima | RF3 |
-| `neows-service` | http://localhost:3003/asteroides | RF2, RF9 |
-| `iss-tracker-service` | http://localhost:3004/iss/posicion | RF4 |
-| `auth-service` | http://localhost:3005/auth/registro · `/auth/login` | RNF3 |
-| `reports-service` | http://localhost:3006/reportes | RF6 |
-| `iss-alerts-service` | http://localhost:3007/alertas/paso | RF5 |
-| PostgreSQL | `localhost:5432` (BD `spacemex`, user/pass `postgres`) | — |
+| Servicio | A través del proxy | Puerto directo (debug) | Requerimiento |
+|---|---|---|---|
+| **Frontend** (dashboard) | http://localhost:8080 | — | — |
+| `apod-service` | `/api/apod` | http://localhost:3001/apod | RF1, RF7, RF8 |
+| `mars-weather-service` | `/api/marte/clima` | http://localhost:3002/marte/clima | RF3 |
+| `neows-service` | `/api/asteroides` | http://localhost:3003/asteroides | RF2, RF9 |
+| `iss-tracker-service` | `/api/iss/posicion` | http://localhost:3004/iss/posicion | RF4 |
+| `auth-service` | `/api/auth/registro` · `/api/auth/login` | http://localhost:3005 | RNF3 |
+| `reports-service` | `/api/reportes` | http://localhost:3006/reportes | RF6 |
+| `iss-alerts-service` | `/api/alertas/paso` | http://localhost:3007/alertas/paso | RF5 |
+| PostgreSQL | — | `localhost:5432` (BD `spacemex`, user/pass `postgres`) | — |
+
+Los "puertos directos" siguen publicados en local para depurar (`curl localhost:3001/apod`).
+En el despliegue se cierran: solo queda expuesto el frontend (ver [Despliegue](#despliegue-poner-la-página-en-internet)).
 
 Los cuatro wrappers y el frontend se abren directo en el navegador. `auth`, `reports`
 e `iss-alerts` son `POST`, así que necesitan `curl` o Postman — ejemplos abajo.
@@ -107,9 +116,109 @@ curl -X POST http://localhost:3007/alertas/paso \
   el otro lo valida.
 - **Dentro de la red de compose la BD es `postgres:5432`**, no `localhost` (dentro de
   un contenedor `localhost` es el contenedor mismo).
-- **El frontend llama a `localhost:300X` desde el navegador**, que resuelve a tu
-  máquina, donde compose publica los puertos. Por eso funciona sin tocar el código.
+- **El frontend nunca hardcodea URLs.** Llama a rutas relativas `/api/*` y el
+  *reverse proxy* (nginx en Docker, el proxy de Vite en `npm run dev`) las reparte a
+  cada servicio. Así el mismo código sirve en local y desplegado.
 - **Los datos de Postgres persisten** en el volumen `postgres-data` entre reinicios.
+
+## Despliegue: poner la página en internet
+
+Para una demo/entrega, lo más simple es una **VM (máquina virtual) en la nube** que
+corra el mismo `docker compose`. Como el frontend usa un *reverse proxy*, solo hay
+que exponer **un puerto** (el 80) y no se toca ni una línea de código.
+
+### 1. Consigue una VM gratis
+
+Con tu correo universitario tienes opciones **sin tarjeta de crédito**:
+
+- **[Azure for Students](https://azure.microsoft.com/free/students)** — crédito gratis con tu correo `@utcj.edu.mx`.
+- **[GitHub Student Pack](https://education.github.com/pack)** — incluye crédito en DigitalOcean y otros.
+- **[Oracle Cloud Free Tier](https://www.oracle.com/cloud/free/)** — una VM gratis "para siempre".
+
+Crea una VM **Ubuntu 22.04** (con 1 GB de RAM alcanza) y, en su firewall / grupo de
+seguridad, **abre el puerto 80** (HTTP) además del 22 (SSH).
+
+### 2. Instala Docker en la VM
+
+Conéctate por SSH y:
+
+```bash
+curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker $USER && exit   # vuelve a entrar por SSH tras esto
+```
+
+### 3. Clona y levanta (modo producción)
+
+```bash
+git clone https://github.com/DjRober/spacemx.git
+cd spacemx
+
+cp .env.example .env
+nano .env                 # pon tu NASA_API_KEY real, un JWT_SECRET largo y FRONTEND_PORT=80
+
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
+```
+
+Abre `http://<IP-pública-de-tu-VM>` en el navegador. **Ese es tu link para la entrega.**
+
+### ¿Qué hace el modo producción?
+
+El comando usa **dos** archivos: el `docker-compose.yml` de siempre más
+`docker-compose.prod.yml`, que **cierra los puertos** de los backends y de Postgres.
+En el servidor, solo el frontend (nginx, puerto 80) queda accesible desde internet;
+los servicios se hablan entre sí por la red interna de Docker. Sin esto, Postgres
+quedaría expuesto con `postgres/postgres` — un riesgo real en una máquina pública.
+
+| | Puertos abiertos a internet |
+|---|---|
+| `docker compose up` (local) | frontend + los 7 servicios + Postgres (cómodo para depurar) |
+| `... -f docker-compose.prod.yml up` (VM) | **solo el frontend** |
+
+### Con dominio propio + HTTPS (candado) 🔒
+
+Para que el link sea `https://spacemex.tudominio.com` (con candado) en vez de una IP,
+se añade **[Caddy](https://caddyserver.com/)**, que saca y renueva el certificado de
+Let's Encrypt **automáticamente**. Ya está todo listo en el repo.
+
+**Paso 1 — un subdominio gratis con [DuckDNS](https://www.duckdns.org/):**
+1. Entra a duckdns.org e inicia sesión (con Google/GitHub).
+2. Crea un subdominio, ej. `spacemex` → te dan `spacemex.duckdns.org`.
+3. En el campo **current ip**, pon el **IP público de tu VM** y guarda.
+
+> Con un dominio propio (Namecheap, etc.) es igual: crea un registro **A** que apunte
+> `spacemex.tudominio.com` → IP de la VM.
+
+**Paso 2 — abre los puertos 80 y 443** en el firewall / grupo de seguridad de la VM.
+
+**Paso 3 — en el `.env` de la VM**, define el dominio (y quita `FRONTEND_PORT`, ya no
+publica puerto porque Caddy va al frente):
+
+```env
+DOMAIN=spacemex.duckdns.org
+```
+
+**Paso 4 — levanta apilando el override de HTTPS:**
+
+```bash
+docker compose -f docker-compose.yml \
+               -f docker-compose.prod.yml \
+               -f docker-compose.https.yml up --build -d
+```
+
+Abre **https://spacemex.duckdns.org** — con candado, y el certificado se renueva solo.
+Caddy además redirige `http://` → `https://` automáticamente.
+
+> **Cómo funciona:** Caddy escucha en 80/443, termina el TLS y reenvía al frontend por
+> la red interna. La cadena es `navegador → Caddy (HTTPS) → nginx → /api → servicios`.
+> Los certificados se guardan en un volumen (`caddy-data`) para no volver a pedirlos en
+> cada reinicio (Let's Encrypt tiene límites de emisión).
+
+### Notas
+
+- **¿Solo un link rápido y temporal?** Si no quieres crear una VM, un túnel
+  (`cloudflared tunnel --url http://localhost:8080`) expone tu Docker local con una
+  URL pública mientras tu máquina esté encendida. Sirve para enseñar algo al momento,
+  no para la entrega final.
 
 ## Problema que resuelve
 

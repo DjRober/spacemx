@@ -1,8 +1,10 @@
 // services/issService.js
 // RF4 / RF5 — Servicio de la ISS (posición y alertas de paso)
 
-const ISS_SERVICE_URL   = 'http://localhost:3004'
-const ISS_ALERTS_URL    = 'http://localhost:3007'
+// Rutas relativas: el reverse proxy (nginx en prod, Vite en dev) las
+// enruta al iss-tracker-service y al iss-alerts-service respectivamente.
+const ISS_SERVICE_URL   = '/api'
+const ISS_ALERTS_URL    = '/api'
 
 /**
  * Obtiene la posición actual de la ISS desde el iss-tracker-service.

@@ -1,0 +1,29 @@
+# Override para desplegar en un servidor público (una VM).
+#
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
+#
+# En el compose base cada backend publica su puerto (3001-3007, 5432) al host,
+# lo cual es cómodo para desarrollar y depurar en local. En un servidor público
+# eso dejaría a Postgres (postgres/postgres) y las APIs abiertos a internet.
+#
+# Este override CIERRA esos puertos con `!reset`: los servicios se siguen
+# comunicando entre sí por la red interna de Docker, pero desde fuera SOLO se
+# alcanza el frontend/nginx. Recuerda poner FRONTEND_PORT=80 en tu .env.
+
+services:
+  postgres:
+    ports: !reset []
+  apod-service:
+    ports: !reset []
+  mars-weather-service:
+    ports: !reset []
+  neows-service:
+    ports: !reset []
+  iss-tracker-service:
+    ports: !reset []
+  iss-alerts-service:
+    ports: !reset []
+  auth-service:
+    ports: !reset []
+  reports-service:
+    ports: !reset []

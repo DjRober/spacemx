@@ -2,9 +2,10 @@
 // RF1, RF7 — Foto Astronómica del Día
 // Cliente del microservicio apod-service (que a su vez envuelve la NASA API).
 
-// URL del servicio. Configurable por entorno (Vite) para no hardcodear
-// localhost en producción; cae a localhost:3001 en desarrollo.
-const API_URL = import.meta.env.VITE_APOD_API_URL || "http://localhost:3001/apod";
+// Ruta relativa: el reverse proxy la enruta al apod-service.
+// En desarrollo la reenvía el proxy de Vite (ver vite.config.js);
+// en producción, nginx (ver frontend/nginx.conf). Mismo origen → sin CORS.
+const API_URL = "/api/apod";
 
 // ─── Caché de cliente ────────────────────────────────────────────
 // El backend ya cachea, pero esto evita incluso la ida y vuelta por red:

@@ -3,7 +3,8 @@
 node_modules
 npm-debug.log*
 
-# Build de produccion: el contenedor corre Vite en modo dev.
+# Build de produccion: se genera DENTRO de la imagen (npm run build),
+# no queremos copiar un dist viejo del host al contexto de build.
 dist
 dist-ssr
 

@@ -1,9 +1,9 @@
 // services/marsWeatherService.js
 // RF3 — Clima en Marte
-// Conectado al mars-weather-service (http://localhost:3002/marte/clima).
+// Conectado al mars-weather-service a través del reverse proxy.
 // Si el servicio está apagado, devuelve datos de ejemplo para no romper la página.
 
-const SERVICIO_URL = "http://localhost:3002/marte/clima";
+const SERVICIO_URL = "/api/marte/clima";
 
 // Datos de respaldo por si el servicio está apagado
 const EJEMPLO = {
