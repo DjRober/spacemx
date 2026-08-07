@@ -151,6 +151,7 @@ export default {
       peligroso: "Hazardous",
       noPeligroso: "Not hazardous",
       limpiar: "Clear",
+      rangoMax: "The maximum range is 7 days (NASA API limit).",
     },
     tabla: {
       nombre: "Name",
@@ -160,6 +161,7 @@ export default {
       peligroso: "Hazardous",
       si: "⚠ Yes",
       no: "✓ No",
+      cargando: "Loading asteroids…",
       vacio: "No asteroids found with those filters.",
     },
   },

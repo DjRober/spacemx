@@ -151,6 +151,7 @@ export default {
       peligroso: "Peligroso",
       noPeligroso: "No peligroso",
       limpiar: "Limpiar",
+      rangoMax: "El rango máximo es de 7 días (límite de la API de la NASA).",
     },
     tabla: {
       nombre: "Nombre",
@@ -160,6 +161,7 @@ export default {
       peligroso: "Peligroso",
       si: "⚠ Sí",
       no: "✓ No",
+      cargando: "Cargando asteroides…",
       vacio: "No se encontraron asteroides con esos filtros.",
     },
   },

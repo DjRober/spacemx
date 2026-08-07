@@ -4,9 +4,18 @@
 // Cuando el servicio esté apagado, devuelve un arreglo vacío sin romper la app.
 
 export const neowsService = {
-  async getUpcomingAsteroids() {
+  // Acepta un rango opcional { desde, hasta } (YYYY-MM-DD) que se envía al
+  // backend como start_date / end_date. La NASA limita el rango a 7 días.
+  async getUpcomingAsteroids({ desde, hasta } = {}) {
     try {
-      const response = await fetch('/api/asteroides')
+      const params = new URLSearchParams()
+      if (desde) params.set('start_date', desde)
+      if (hasta) params.set('end_date', hasta)
+
+      const query = params.toString()
+      const url = query ? `/api/asteroides?${query}` : '/api/asteroides'
+
+      const response = await fetch(url)
 
       if (!response.ok) {
         console.error('[neowsService] Error del servidor:', response.status)
