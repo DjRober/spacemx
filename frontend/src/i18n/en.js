@@ -169,7 +169,7 @@ export default {
     brandSub: "NASA Space Dashboard",
     login: {
       email: "Email address",
-      emailPlaceholder: "youremail@example.com",
+      emailPlaceholder: "youremail{'@'}example.com",
       password: "Password",
       btn: "Sign in",
       btnCargando: "Signing in…",
@@ -186,7 +186,7 @@ export default {
       nombre: "Full name",
       nombrePlaceholder: "Roberto Pérez",
       email: "Email address",
-      emailPlaceholder: "roberto@spacemex.dev",
+      emailPlaceholder: "roberto{'@'}spacemex.dev",
       password: "Password",
       confirm: "Confirm password",
       btn: "Create account",
