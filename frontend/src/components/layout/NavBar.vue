@@ -56,21 +56,35 @@ function cerrarSesion() {
   router.push("/");
 }
 
-let observer = null;
+// Scroll spy: resalta en el navbar la sección que estás viendo.
+// El listener vive mientras exista el NavBar (App.vue, siempre montado) y
+// re-consulta las secciones en cada scroll, así que no importa que solo
+// existan en /dashboard: cuando scrolleas ahí, ya están en el DOM. La sección
+// activa es la última cuyo borde superior pasó por debajo del navbar.
+// (Antes se usaba un IntersectionObserver con banda estrecha que no disparaba
+//  de forma fiable, por eso siempre quedaba resaltada "Foto del día".)
+const NAV_OFFSET = 120; // px bajo el top del viewport (el navbar sticky mide 60)
+
+function actualizarActivo() {
+  const secciones = [...document.querySelectorAll("section[id]")];
+  if (!secciones.length) return;
+  let actual = secciones[0].id;
+  for (const s of secciones) {
+    if (s.getBoundingClientRect().top <= NAV_OFFSET) actual = s.id;
+  }
+  activeId.value = actual;
+}
 
 onMounted(() => {
-  observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) activeId.value = entry.target.id;
-      });
-    },
-    { rootMargin: "-40% 0px -55% 0px" }
-  );
-  document.querySelectorAll("section[id]").forEach((s) => observer.observe(s));
+  // capture:true capta el scroll aunque ocurra en un contenedor interno
+  // (los eventos scroll no burbujean, pero sí se pueden capturar).
+  window.addEventListener("scroll", actualizarActivo, { passive: true, capture: true });
+  actualizarActivo();
 });
 
-onBeforeUnmount(() => observer?.disconnect());
+onBeforeUnmount(() => {
+  window.removeEventListener("scroll", actualizarActivo, { capture: true });
+});
 </script>
 
 <template>
